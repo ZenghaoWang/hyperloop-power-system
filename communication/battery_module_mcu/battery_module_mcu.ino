@@ -4,8 +4,8 @@
   Monitors the temperature and voltage of the battery module within the UTHT
   Hyperloop pod.
 
-  Designed to run on an Arduino Micro, communicates directly with an Arduino Due
-  over I2C (the Micro is the slave and the Due is the master).
+  Designed to run on an Arduino Micro, communicates directly with an Arduino
+  Due over I2C (the Micro is the slave and the Due is the master).
 */
 
 #include <Wire.h>
@@ -27,65 +27,78 @@ void setup() {
   Wire.begin(I2C_ADDR);
   // Register the I2C request handler to be called when the Due requests data.
   Wire.onRequest(I2C_Request_Handler);
-  // Setup the analog input ports for temperate.
-  for (int i = 0; i < NUM_TEMP_ANALOG_INPUT_PORTS; i++) {
-    pinMode(temp_analog_input_ports[i], INPUT);    
-  }
-  // Setup the analog input port for voltage.
-  pinMode(VOLTAGE_ANALOG_INPUT_PORT, INPUT);
+  // Configure the analog reference voltage to be 2.56V instead of 5V.
+  analogReference(INTERNAL);
 }
 
-// Convert an analog sensor value from the analogRead function into a voltage value from 0V - 5V.
-static float convert_analog_sensor_value_to_voltage(int analog_sensor_value) {
-  // Arduino Micros measure at a 10 bit resolution, meaning there are 1024 possible values;
-  // with 0 being 0V and 1023 being 5V.
-  return analog_sensor_value * (5.0 / 1023.0);
+// Convert an analog sensor value from the analogRead function into a voltage
+// value from 0V - 2.56V.
+static float convert_sensor_value_to_voltage(int analog_sensor_value) {
+  // Arduino Micros measure at a 10 bit resolution, meaning there are 1024
+  // possible values; with 0 being 0V and 1023 being 2.56V.
+  // Note: this is by default 5V refernece, however used analogReference to
+  //       change it to 2.56V.
+  return analog_sensor_value * (2.56 / 1023.0);
 }
 
-// Convert an analog sensor value into a temperature value using 3rd order polynomial
-// approximation with 99.72% accuracy, based on data provided by UTHT.
-//  temp = -225.7 * v^3 + 1310.6 * v^2 - 2594.8 * v + 1767.8
-// TODO: Double check the data provided is accurate.
-static float convert_analog_sensor_value_to_temp(int analog_sensor_value) {
-  float voltage = convert_analog_sensor_value_to_voltage(analog_sensor_value);
+// Convert an analog sensor value into a temperature value using 2nd order
+// polynomial approximation. Approximation calculated based on Li4P25RT
+// datasheet, page 3, only within our expected temperature range of 15C to 60C.
+// Accurate within 1C within the expected range. Will not be accurate outside
+// of this range.
+static float convert_sensor_value_to_temp(int analog_sensor_value) {
+  float voltage = convert_sensor_value_to_voltage(analog_sensor_value);
   float voltage_squared = voltage * voltage;
-  float voltage_cubed = voltage_squared * voltage;
-  return -225.7 * voltage_cubed + 1310.6 * voltage_squared - 2594.8 * voltage + 1767.8;
+  return 62.9036 * voltage_squared - 312.17635 * voltage + 387.51705;
+}
+
+// Convert an analog sensor value into a State of Charge value using a linear
+// interpolation to get the state of charge from the voltage of the battery
+// with the max state of charge (1) when the batteries are at 29.4V and min (0)
+// when the batteries are at 17.5V.
+// TODO: Update this based on experimental results to use a more accurate
+//       model. The real SoC characteristics will depend on the discharge
+//       characteristics of the batteries based on their C values.
+static float convert_sensor_value_to_SoC(int analog_sensor_value) {
+  float port_voltage = convert_sensor_value_to_voltage(analog_sensor_value);
+  // Assuming that the voltage analog input port is reading the voltage accross
+  // a voltage divider with 29.4V corresponding to the maximum value of 2.56V,
+  // the battery voltage must be scaled up accordingly.
+  float battery_voltage = port_voltage * (29.4 / 2.56);  
+  float state_of_charge = 0.084 * battery_voltage - 1.4706;
 }
 
 // Callback function for when data is requested from this device by the master.
-// Calculates the temperature and voltage of the battery module and sends it to the master.
+//  Calculates the temperature and voltage of the battery module and sends it
+//  to the master.
 void I2C_Request_Handler() {
-  // Get the maximum temperature from the 7 temperature sensors.
-  int max_temp_analog_sensor_val = 0;
+  // Get the maximum temperature from the temperature sensors.
+  //  Temperature goes up as the analog sensor value goes down; thus, need to
+  //  find the minimum analog sensor value of the temperature sensors.
+  int min_temp_sensor_val = 1023;
   for (int i = 0; i < NUM_TEMP_ANALOG_INPUT_PORTS; i++) {
-    int temp_analog_sensor_val = analogRead(temp_analog_input_ports[i]);
-    if (temp_analog_sensor_val > max_temp_analog_sensor_val) {
-      max_temp_analog_sensor_val = temp_analog_sensor_val;
+    int temp_sensor_val = analogRead(temp_analog_input_ports[i]);
+    if (temp_sensor_val < min_temp_sensor_val) {
+      min_temp_sensor_val = temp_sensor_val;
     }
   }
-  float max_battery_temp = convert_analog_sensor_value_to_temp(max_temp_analog_sensor_val);
+  float max_battery_temp = convert_sensor_value_to_temp(min_temp_sensor_val);
 
-  // Get the voltage of the battery module.
-  //  According to UTHT, the voltage of the battery can be found by multiplying the
-  //  voltage of the sensor by 5.
-  // TODO: Double check that this is accurate.
-  // TODO: We really want the state of charge. Need a formula to convert the battery
-  //       voltage to state of charge.
-  int battery_analog_sensor_value = analogRead(VOLTAGE_ANALOG_INPUT_PORT);
-  float battery_voltage = convert_analog_sensor_value_to_voltage(battery_analog_sensor_value) * 5.0;
+  // Get the state of charge of the battery module using the battery voltage.
+  int voltage_sensor_value = analogRead(VOLTAGE_ANALOG_INPUT_PORT);
+  float state_of_charge = convert_sensor_value_to_SoC(voltage_sensor_value);
 
   // Send the data over the I2C interface.
-  // The data is sent as an array of 8 chars, but is actually an array of 2 floats.
-  // Needs to be careful on the receiver side.
-  float data[] = {max_battery_temp, battery_voltage};
+  //  The data is sent as an array of 8 chars, but is actually an array of 2
+  //  floats. Need to be careful on the receiver side.
+  float data[] = {max_battery_temp, state_of_charge};
   Wire.write((char *)data, sizeof(data));
 }
 
 void loop() {
-  // For now the main loop is empty, as the Arduino Micro will only do work if the
-  // Arduino Due requests data; however, if the latency is too large, the Arduino
-  // Micro could precalculate the data every so often and just send the precalculated
-  // data when requested. This will burn more power but will reduce latency. Need to
-  // be carefull with interrupts in that case.
+  // For now the main loop is empty, as the Arduino Micro will only do work if
+  // the Arduino Due requests data; however, if the latency is too large, the
+  // Arduino Micro could precalculate the data every so often and just send the
+  // precalculated data when requested. This will burn more power but will
+  // reduce latency. Need to be carefull with interrupts in that case.
 }
