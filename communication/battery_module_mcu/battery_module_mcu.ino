@@ -33,7 +33,7 @@ void setup() {
 
 // Convert an analog sensor value from the analogRead function into a voltage
 // value from 0V - 2.56V.
-static float convert_sensor_value_to_voltage(int analog_sensor_value) {
+static inline float convert_sensor_value_to_voltage(int analog_sensor_value) {
   // Arduino Micros measure at a 10 bit resolution, meaning there are 1024
   // possible values; with 0 being 0V and 1023 being 2.56V.
   // Note: this is by default 5V refernece, however used analogReference to
@@ -46,7 +46,7 @@ static float convert_sensor_value_to_voltage(int analog_sensor_value) {
 // datasheet, page 3, only within our expected temperature range of 15C to 60C.
 // Accurate within 1C within the expected range. Will not be accurate outside
 // of this range.
-static float convert_sensor_value_to_temp(int analog_sensor_value) {
+static inline float convert_sensor_value_to_temp(int analog_sensor_value) {
   float voltage = convert_sensor_value_to_voltage(analog_sensor_value);
   float voltage_squared = voltage * voltage;
   return 62.9036 * voltage_squared - 312.17635 * voltage + 387.51705;
@@ -59,7 +59,7 @@ static float convert_sensor_value_to_temp(int analog_sensor_value) {
 // TODO: Update this based on experimental results to use a more accurate
 //       model. The real SoC characteristics will depend on the discharge
 //       characteristics of the batteries based on their C values.
-static float convert_sensor_value_to_SoC(int analog_sensor_value) {
+static inline float convert_sensor_value_to_SoC(int analog_sensor_value) {
   float port_voltage = convert_sensor_value_to_voltage(analog_sensor_value);
   // Assuming that the voltage analog input port is reading the voltage accross
   // a voltage divider with 29.4V corresponding to the maximum value of 2.56V,
