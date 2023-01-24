@@ -6,6 +6,9 @@
 
   Designed to run on an Arduino Micro, communicates directly with an Arduino
   Due over I2C (the Micro is the slave and the Due is the master).
+
+  Author: Alexandre Singer
+  January 2023
 */
 
 #include <Wire.h>
@@ -16,11 +19,10 @@
 #define I2C_ADDR 0
 // The analog input port used to measure the voltage.
 #define VOLTAGE_ANALOG_INPUT_PORT A7
+// The analog input ports used to measure temperature.
+#define TEMP_ANALOG_INPUT_PORTS {A0, A1, A2, A3, A4, A5, A6}
 // The number of analog input ports used to measure temperature.
 #define NUM_TEMP_ANALOG_INPUT_PORTS 7
-// The analog input ports used to measure temperature.
-//  Used to simply iterate over the sensors when needed.
-const uint8_t temp_analog_input_ports[] = {A0, A1, A2, A3, A4, A5, A6};
 
 void setup() {
   // Setup the I2C interface as a slave with the address I2C_ADDR.
@@ -76,6 +78,7 @@ void I2C_Request_Handler() {
   //  Temperature goes up as the analog sensor value goes down; thus, need to
   //  find the minimum analog sensor value of the temperature sensors.
   int min_temp_sensor_val = 1023;
+  const uint8_t temp_analog_input_ports[] = TEMP_ANALOG_INPUT_PORTS;
   for (int i = 0; i < NUM_TEMP_ANALOG_INPUT_PORTS; i++) {
     int temp_sensor_val = analogRead(temp_analog_input_ports[i]);
     if (temp_sensor_val < min_temp_sensor_val) {
