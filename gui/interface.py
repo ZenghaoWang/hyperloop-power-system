@@ -718,7 +718,7 @@ class Ui_MainWindow(object):
         self.powerbutton.setObjectName("powerbutton")
         self.verticalLayout_2.addWidget(self.powerbutton)
         self.layoutWidget2 = QtWidgets.QWidget(self.centralwidget)
-        self.layoutWidget2.setGeometry(QtCore.QRect(790, 60, 761, 731))
+        self.layoutWidget2.setGeometry(QtCore.QRect(690, 60, 761, 731))
         self.layoutWidget2.setObjectName("layoutWidget2")
         self.linegraphgrid = QtWidgets.QGridLayout(self.layoutWidget2)
         self.linegraphgrid.setContentsMargins(0, 0, 0, 0)
