@@ -1,8 +1,9 @@
 import sys, random
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QProgressBar
 from interface import Ui_MainWindow
 from PyQt5.QtCore import Qt, QTimer
+from pyqtgraph import PlotWidget, plot
 
 
 
@@ -14,6 +15,18 @@ class MainWindow(QMainWindow):
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
 
+		# Start updating data at regular intervals
+		self.init_timer()
+
+		# Power button toggles system
+		self.ui.powerbutton.clicked.connect(self.toggle_system)
+
+		for widget in self.ui.centralwidget.findChildren(QProgressBar):
+			widget.setTextVisible(True)
+
+
+
+	def init_timer(self):
 		self.ui.timer = QTimer()
 		self.ui.timer.setInterval(self.REFRESH_INTERVAL)
 		self.ui.timer.timeout.connect(self.update_data)
@@ -39,7 +52,37 @@ class MainWindow(QMainWindow):
 
 		dataline.setData(xs, ys)
 
+	def toggle_system(self):
+		# Turn system off
+		if self.ui.powerstatuslabel.text() == "Status: ON":
+			self.ui.powerbutton.setText("Power On")
+			self.ui.powerbutton.setStyleSheet("border-radius: 20px; background-color: rgb(170, 170, 127);")
 
+			self.ui.powerstatuslabel.setStyleSheet(" font-weight: bold; color: rgb(170, 170, 127);")
+			self.ui.powerstatuslabel.setText("Status: OFF")
+
+
+			# Stop updating data
+			self.ui.timer.stop()
+
+			for widget in self.ui.centralwidget.findChildren(QLabel):
+				if widget.text()[-1] == "c" or widget.text()[-1] == "%":
+					widget.setText("N/A")
+			for widget in self.ui.centralwidget.findChildren(QProgressBar):
+				widget.setTextVisible(False)
+				widget.setValue(0)
+		# Turn system on
+		else:
+			self.ui.powerbutton.setText("Power Off")
+			self.ui.powerbutton.setStyleSheet("border-radius: 20px; background-color: rgb(224, 108, 117);")
+
+			self.ui.powerstatuslabel.setStyleSheet(" font-weight: bold; color: #33D918;")
+			self.ui.powerstatuslabel.setText("Status: ON")
+
+			self.ui.timer.start()
+
+			for widget in self.ui.centralwidget.findChildren(QProgressBar):
+				widget.setTextVisible(True)
 
 
 
