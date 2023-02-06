@@ -15,6 +15,7 @@ import pyqtgraph as pg
 
 
 class Ui_MainWindow(object):
+    timer: QtCore.QTimer
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
@@ -770,8 +771,10 @@ class Ui_MainWindow(object):
         self.lvlabel.setAlignment(QtCore.Qt.AlignCenter)
         self.lvlabel.setObjectName("lvlabel")
         self.lvgraph = pg.PlotWidget()
-        self.lvgraph.plot([1,2,3,4,5,6,7,8,9,10], [1,2,3,4,5,6,7,8,9,10])
-        self.lvgraph.setParent(self.lvframe)
+        self.lvgraph.setYRange(0, 100)
+        self.lvgraph_x = [x for x in range(1, 10)]
+        self.lvgraph_y = [random.randint(0, 100) for i in range(1, 10)]
+        self.lvgraph_dataline = self.lvgraph.plot(self.lvgraph_x, self.lvgraph_y)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -795,7 +798,10 @@ class Ui_MainWindow(object):
         self.hvlabel.setAlignment(QtCore.Qt.AlignCenter)
         self.hvlabel.setObjectName("hvlabel")
         self.hvgraph = pg.PlotWidget()
-        self.hvgraph.plot([x for x in range(10)], [random.randint(0, 10) for x in range(10)])
+        self.hvgraph.setYRange(0, 100)
+        self.hvgraph_x = [x for x in range(1, 10)]
+        self.hvgraph_y = [random.randint(0, 100) for i in range(1, 10)]
+        self.hvgraph_dataline = self.hvgraph.plot(self.hvgraph_x, self.hvgraph_y)
         self.hvgraph.setSizePolicy(sizePolicy)
         self.grid_hvframe.addWidget(self.hvlabel)
         self.grid_hvframe.addWidget(self.hvgraph)
@@ -815,7 +821,10 @@ class Ui_MainWindow(object):
         self.lvcurrentlabel.setAlignment(QtCore.Qt.AlignCenter)
         self.lvcurrentlabel.setObjectName("lvcurrentlabel")
         self.lvcurrentgraph = pg.PlotWidget()
-        self.lvcurrentgraph.plot([x for x in range(10)], [random.randint(0, 10) for x in range(10)])
+        self.lvcurrentgraph.setYRange(0, 100)
+        self.lvcurrent_x = [x for x in range(1, 10)]
+        self.lvcurrent_y = [random.randint(0, 100) for i in range(1, 10)]
+        self.lvcurrent_dataline = self.lvcurrentgraph.plot(self.lvcurrent_x, self.lvcurrent_y)
         self.lvgraph.setSizePolicy(sizePolicy)
         self.grid_lvcurrentframe.addWidget(self.lvcurrentlabel)
         self.grid_lvcurrentframe.addWidget(self.lvcurrentgraph)
@@ -835,7 +844,10 @@ class Ui_MainWindow(object):
         self.hvcurrentlabel.setAlignment(QtCore.Qt.AlignCenter)
         self.hvcurrentlabel.setObjectName("hvcurrentlabel")
         self.hvcurrentgraph = pg.PlotWidget()
-        self.hvcurrentgraph.plot([x for x in range(10)], [random.randint(0, 10) for x in range(10)])
+        self.hvcurrentgraph.setYRange(0, 100)
+        self.hvcurrent_x = [x for x in range(1, 10)]
+        self.hvcurrent_y = [random.randint(0, 100) for i in range(1, 10)]
+        self.hvcurrent_dataline = self.hvcurrentgraph.plot(self.hvcurrent_x, self.hvcurrent_y)
         self.hvcurrentgraph.setSizePolicy(sizePolicy)
         self.grid_hvcurrentframe.addWidget(self.hvcurrentlabel)
         self.grid_hvcurrentframe.addWidget(self.hvcurrentgraph)
