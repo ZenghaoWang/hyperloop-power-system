@@ -108,15 +108,14 @@ void loop() {
     should_send_data = false;
     
     // Get the battery module data.
-    float battery_module_data[2];
+    float battery_module_temp;
     // Note: this function returns 0 in the event of a timeout...
     //       may have to alter the micro code to precalculate data.
-    uint8_t res = Wire.requestFrom(0, sizeof(battery_module_data));
+    uint8_t res = Wire.requestFrom(0, sizeof(battery_module_temp));
     while (Wire.available()) {
-      Wire.readBytes((char *)battery_module_data, sizeof(battery_module_data));
+      Wire.readBytes((char *)(&battery_module_temp), sizeof(battery_module_temp));
     }
-    send_data_over_can_bus(battery_module_data, sizeof(float), 0x100, 0);
-    send_data_over_can_bus(battery_module_data + 1, sizeof(float), 0x101, 15);
+    send_data_over_can_bus(&battery_module_temp, sizeof(float), 0x100, 0);
 
     // Get the LV Battery Current.
     float LV_current = convert_sensor_value_to_current(analogRead(CURRENT_ANALOG_INPUT_PORT));
