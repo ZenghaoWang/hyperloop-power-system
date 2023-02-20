@@ -14,7 +14,7 @@
 
 void setup() {
   // Set up the serial interface
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   // Set up the can bus interface to run at 1000 Kbps
   Can0.begin(CAN_BPS_1000K);
