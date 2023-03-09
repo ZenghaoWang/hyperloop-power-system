@@ -23,14 +23,15 @@
 // The timer compare match register
 //  ((16*10^6) / (desired_freq * 1024)) - 1
 //  Note: must be less than 65536. 
-//  Currently set to 64 Hz.
-#define TIMER_CMP_MATCH_REG 243
+//  Currently set to 1 Hz.
+#define TIMER_CMP_MATCH_REG 15624
 
 // Global variables for interrupts
 volatile int check_temps = true;
 volatile float max_battery_temp = 0;
 
 void setup() {
+  Serial.begin(9600);
   // Setup the I2C interface as a slave with the address I2C_ADDR.
   Wire.begin(I2C_ADDR);
   // Register the I2C request handler to be called when the Due requests data.
@@ -101,13 +102,24 @@ void loop() {
     //  Temperature goes up as the analog sensor value goes down; thus, need to
     //  find the minimum analog sensor value of the temperature sensors.
     int min_temp_sensor_val = 1023;
+    int max_temp_sensor_val = 0;
     const uint8_t temp_analog_input_ports[] = TEMP_ANALOG_INPUT_PORTS;
     for (int i = 0; i < NUM_TEMP_ANALOG_INPUT_PORTS; i++) {
       int temp_sensor_val = analogRead(temp_analog_input_ports[i]);
+      Serial.println(temp_sensor_val);
       if (temp_sensor_val < min_temp_sensor_val) {
         min_temp_sensor_val = temp_sensor_val;
       }
+      if (temp_sensor_val > max_temp_sensor_val) {
+        max_temp_sensor_val = temp_sensor_val;
+      }
     }
     max_battery_temp = convert_sensor_value_to_temp(min_temp_sensor_val);
+    Serial.print("Max battery temp: ");
+    Serial.println(max_battery_temp);
+
+    float min_battery_temp = convert_sensor_value_to_temp(max_temp_sensor_val);
+    Serial.print("Min battery temp: ");
+    Serial.println(min_battery_temp);
   }
 }
