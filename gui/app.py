@@ -1,4 +1,6 @@
 import sys, random
+import can
+from frame import Frame
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QProgressBar
 from interface import Ui_MainWindow
@@ -23,7 +25,15 @@ class MainWindow(QMainWindow):
 
 		for widget in self.ui.centralwidget.findChildren(QProgressBar):
 			widget.setTextVisible(True)
+		
+		self.listen()
+		
 
+	def listen(self):
+		self.bus = can.interface.Bus(interface='slcan', channel='COM0', bitrate=500000)
+
+		self.listener = can.BufferedReader()
+		can.Notifier(self.bus, [self.listener])
 
 
 	def init_timer(self):
@@ -34,11 +44,16 @@ class MainWindow(QMainWindow):
 
 		"""Called for every timer interval.
 		"""
+		
 	def update_data(self):
-		self.advance_dataline(self.ui.lvgraph_x, self.ui.lvgraph_y, self.ui.lvgraph_dataline, random.randint(30, 40))
-		self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, random.randint(30, 40))
-		self.advance_dataline(self.ui.lvcurrent_x, self.ui.lvcurrent_y, self.ui.lvcurrent_dataline, random.randint(30, 40))
-		self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, random.randint(30, 40))
+		msg = self.listener.get_message()
+		if (msg): 
+			frame = Frame.from_bytearray(msg.data)
+			# TODO: Update rest of GUI values
+			self.advance_dataline(self.ui.lvgraph_x, self.ui.lvgraph_y, self.ui.lvgraph_dataline, frame.lv_voltage)
+			self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, frame.hv_voltage)
+			self.advance_dataline(self.ui.lvcurrent_x, self.ui.lvcurrent_y, self.ui.lvcurrent_dataline, frame.lv_batt_current)
+			self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, frame.hv_current)
 	
 		"""Given a list of x values, a list of y values, a pyqtgraph dataline object, and a new y value, 
 		update the dataline with the new y value and shift the x values over by one.
@@ -83,6 +98,31 @@ class MainWindow(QMainWindow):
 
 			for widget in self.ui.centralwidget.findChildren(QProgressBar):
 				widget.setTextVisible(True)
+
+
+
+		
+
+
+
+# class Label(QLabel):
+# 	def __init__(self, *args, **kwargs):
+# 		super().__init__(*args, **kwargs)
+
+# 		self.setAlignment(Qt.AlignCenter)
+
+# class MainWindow(QMainWindow):
+# 	def __init__(self):
+# 		super().__init__()
+
+# 		self.setWindowTitle("Hyperloop Power System Testing Interface")
+# 		main_layout = QVBoxLayout()
+# 		main_layout.addWidget(Label("Hi"))
+
+# 		main_widget = QWidget()
+# 		main_widget.setLayout(main_layout)
+
+# 		self.setCentralWidget(main_widget)
 
 if __name__ == "__main__":
 	app = QApplication(sys.argv)
