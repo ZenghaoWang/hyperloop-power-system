@@ -1,0 +1,2 @@
+# Remove any text files in this folder, they can be quite large.
+*.txt

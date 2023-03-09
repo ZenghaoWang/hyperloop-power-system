@@ -218,3 +218,6 @@ poetry.toml
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
+
+### MAC Filesystem ###
+**/.DS_Store
