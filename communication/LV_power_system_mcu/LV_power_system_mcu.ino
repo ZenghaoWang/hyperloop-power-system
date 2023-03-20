@@ -14,7 +14,7 @@
   its serial USB interface.
 
   Author: Alexandre Singer
-  January 2023
+  March 2023
 */
 
 #include "variant.h"
@@ -30,6 +30,8 @@
 #define VOLTAGE_ANALOG_INPUT_PORT A1
 // The analog input port used to read the temperature of the PCB.
 #define TEMP_ANALOG_INPUT_PORT A2
+// The I2C address of the slave Arduino monitoring the battery module.
+#define BATTERY_MODULE_MCU_I2C_ADDR 0
 
 // Flag for when data should be sent over the CAN bus.
 volatile int should_send_data = false;
@@ -92,6 +94,11 @@ static inline float convert_sensor_value_to_temp(int analog_sensor_value) {
   return port_voltage;
 }
 
+// Helper method for sending data over the CAN bus.
+//  data: pointer the data payload to send
+//  length: length of the payload (must be 8 or less)
+//  id: frame ID for the payload
+//  priority: frame priority
 static void send_data_over_can_bus(void *data, size_t length, uint32_t id, uint8_t priority) {
   CAN_FRAME frame;
   frame.extended = false;
@@ -109,9 +116,8 @@ void loop() {
     
     // Get the battery module data.
     float battery_module_temp;
-    // Note: this function returns 0 in the event of a timeout...
-    //       may have to alter the micro code to precalculate data.
-    uint8_t res = Wire.requestFrom(0, sizeof(battery_module_temp));
+    // Note: this function returns the number of bytes returned by the slave, 0 in the event of a timeout.
+    uint8_t res = Wire.requestFrom(BATTERY_MODULE_MCU_I2C_ADDR, sizeof(battery_module_temp));
     while (Wire.available()) {
       Wire.readBytes((char *)(&battery_module_temp), sizeof(battery_module_temp));
     }
