@@ -9,8 +9,6 @@ The `communication_prototype` folder contains Arduino code used to prototype the
 
 ## CAN ID to Sensor Data Table
 
-THIS IS NOT FINALIZED, JUST NOTES.
-
 Largest ID: 0x4FF
 
 Highest Priority: 0
@@ -35,21 +33,58 @@ TODO: Put this information in a header file somehow.
 | 0x007 | HV Battery Module 7 Temp. | fp32 | 0 |
 | 0x008 | HV Battery Module 8 Temp. | fp32 | 0 |
 | 0x009 | HV Battery Module 9 Temp. | fp32 | 0 |
-| 0x00A | HV Battery Module 0 State of Charge | fp32 | 15 |
-| 0x00B | HV Battery Module 1 State of Charge | fp32 | 15 |
-| 0x00C | HV Battery Module 2 State of Charge | fp32 | 15 |
-| 0x00D | HV Battery Module 3 State of Charge | fp32 | 15 |
-| 0x00E | HV Battery Module 4 State of Charge | fp32 | 15 |
-| 0x00F | HV Battery Module 5 State of Charge | fp32 | 15 |
-| 0x010 | HV Battery Module 6 State of Charge | fp32 | 15 |
-| 0x011 | HV Battery Module 7 State of Charge | fp32 | 15 |
-| 0x012 | HV Battery Module 8 State of Charge | fp32 | 15 |
-| 0x013 | HV Battery Module 9 State of Charge | fp32 | 15 |
 | 0x014 | HV System Voltage | fp32 | 3 |
 | 0x015 | HV System Current | fp32 | 3 |
-| 0x1?? | Unused | void | null |
 | 0x100 | LV Battery Module Temp. | fp32 | 0 |
-| 0x101 | LV Battery Module State of Charge | fp32 | 15 |
 | 0x102 | LV Battery Current | fp32 | 4 |
 | 0x103 | LV System Voltage | fp32 | 4 |
 | 0x104 | LV PCB Temp. | fp32 | 7 |
+
+## LV MCU Signals
+The LV MCU has signals that it will use to enable or disable different things in the LV system. These signals are communicated with the LV MCU over serial USB using a 1 Byte command. The MCU will respond to the command with a 1 Byte Response. Each Byte sent will be Acknowledged or No-Acknowledge if the message was received. Multiple Bytes may be sent before a response is received. The Arduino comes with a buffer to hold Serial messages before they are handled.
+
+Note: Currently, which Buck Converter is which does not really matter; it just made the most sense to letter them for the sake of code clarity. The real problem is that there is two 12V Buck Converters and it's hard to specify between them. For the future we will need to formalize which Buck Converter is which. I would like to propose the following:
+
+| Buck Code | Buck Converter |
+| --------- | -------------- |
+| Buck A | 24V Buck Converter |
+| Buck B | First 12V Buck Converter |
+| Buck C | Second 12V Buck Converter |
+| Buck D | 5V Buck Converter |
+
+
+| Command | Signal | Description |
+| ------- | ------ | ----------- |
+| 'S' | Software Switch Enable | Closes the software switch such that power is coming from the HV batteries |
+| 's' | Software Switch Disable | Opens the software switch such that the power is coming from the LV battery |
+| 'A' | Buck A Enable | Enables Buck A such that it generates voltage on the rail |
+| 'a' | Buck A Disable | Disables Buck A such that it does not generate voltage on the rail |
+| 'B' | Buck B Enable | Enables Buck B such that it generates voltage on the rail |
+| 'b' | Buck B Disable | Disables Buck B such that it does not generate voltage on the rail |
+| 'C' | Buck C Enable | Enables Buck C such that it generates voltage on the rail |
+| 'c' | Buck C Disable | Disables Buck C such that it does not generate voltage on the rail |
+| 'D' | Buck D Enable | Enables Buck D such that it generates voltage on the rail |
+| 'd' | Buck D Disable | Disables Buck D such that it does not generate voltage on the rail |
+
+| Response | Meaning |
+| -------- | ------- |
+| 'A' | Acknowledge: Message received and acted upon |
+| 'N' | No-Acknowledge: Message received but for one reason or another the message was not acted upon |
+
+An example interaction between the Main Computer and the MCU is provided below:
+
+| Command | Response | Action on MCU |
+| ------- | -------- | ------------- |
+| 'a' | | |
+| | 'A' | Buck A is disabled |
+| 'q' | | |
+| | 'N' | Invalid command, no action is taken |
+| 'ABCD' | | |
+| | 'A' | Buck A is enabled |
+| | 'A' | Buck B is enabled |
+| | 'A' | Buck C is enabled |
+| | 'A' | Buck D is enabled |
+
+Note: The Main Computer should take into account a timeout in the case that the MCU is disconnected or if there is errors on the channel. The Main Computer should interpret no response as one of these two cases.
+
+Note: No action is taken on terminating characters such as '\0' and '\n'.
