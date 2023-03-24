@@ -84,23 +84,23 @@ void loop()
       Serial.print(incoming_byte);
     }
   }
-  // // Get the battery module data.
-  // float battery_module_temp = randMToN(40, 60);
-  // send_data_over_can_bus(&battery_module_temp, sizeof(float), 0x100, 0);
-  // Serial.println(battery_module_temp);
+  // Get the battery module data.
+  float battery_module_temp = randMToN(40, 60);
+  send_data_over_can_bus(&battery_module_temp, sizeof(float), 0x100, 0);
+  Serial.println(battery_module_temp);
 
-  // // Get the LV Battery Current.
-  // float LV_current = randMToN(100, 150);
-  // send_data_over_can_bus(&LV_current, sizeof(float), 0x102, 4);
-  // Serial.println(LV_current);
+  // Get the LV Battery Current.
+  float LV_current = randMToN(100, 150);
+  send_data_over_can_bus(&LV_current, sizeof(float), 0x102, 4);
+  Serial.println(LV_current);
 
-  // // Get the LV System Voltage.
-  // float LV_voltage = randMToN(200, 250);
-  // send_data_over_can_bus(&LV_voltage, sizeof(float), 0x103, 4);
-  // Serial.println(LV_voltage);
+  // Get the LV System Voltage.
+  float LV_voltage = randMToN(200, 250);
+  send_data_over_can_bus(&LV_voltage, sizeof(float), 0x103, 4);
+  Serial.println(LV_voltage);
 
-  // // Get the LV PCB Temperature.
-  // float PCB_temp = randMToN(20, 40);
-  // send_data_over_can_bus(&PCB_temp, sizeof(float), 0x104, 7);
-  // Serial.println(PCB_temp);
+  // Get the LV PCB Temperature.
+  float PCB_temp = randMToN(20, 40);
+  send_data_over_can_bus(&PCB_temp, sizeof(float), 0x104, 7);
+  Serial.println(PCB_temp);
 }

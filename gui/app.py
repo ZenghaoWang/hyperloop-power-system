@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
     self.init_timer()
 
     # Power button toggles system when clicked.
-    self.ui.powerbutton.clicked.connect(self.toggle_system)
+    # self.ui.powerbutton.clicked.connect(self.toggle_system)
 
     for widget in self.ui.centralwidget.findChildren(QProgressBar):
       widget.setTextVisible(True)
@@ -44,15 +44,16 @@ class MainWindow(QMainWindow):
   # Overrides a QT method which runs when the application window is closed.
   # Runs cleanup and closes any connections that need to be closed.
   def closeEvent(self, event) -> None:
-    self.arduino_serial.close()
-    self.bus.shutdown()
+    # self.arduino_serial.close()
+    # self.bus.shutdown()
     super().closeEvent(event)
 
   def init_can(self):
-    self.bus = can.interface.Bus(interface='slcan', channel=CANABLE_COM_PORT, bitrate=500000)
+    pass
+    # self.bus = can.interface.Bus(interface='slcan', channel=CANABLE_COM_PORT, bitrate=500000)
 
-    self.listener = can.BufferedReader()
-    can.Notifier(self.bus, [self.listener])
+    # self.listener = can.BufferedReader()
+    # can.Notifier(self.bus, [self.listener])
 
 
   def init_timer(self):
@@ -64,27 +65,28 @@ class MainWindow(QMainWindow):
   
   # Setup a serial connection to the arduino due.
   def init_arduino_serial_conn(self) -> None:
-    try:
-      print(f"Initializing arduino serial connection")
-      self.arduino_serial = serial.Serial()
-      self.arduino_serial.baudrate = BAUD_RATE
-      self.arduino_serial.port = ARDUINO_COM_PORT
-      self.arduino_serial.timeout = 1
+    pass
+    # try:
+    #   print(f"Initializing arduino serial connection")
+    #   self.arduino_serial = serial.Serial()
+    #   self.arduino_serial.baudrate = BAUD_RATE
+    #   self.arduino_serial.port = ARDUINO_COM_PORT
+    #   self.arduino_serial.timeout = 1
       
-      # Close the port just in case it wasn't closed properly.
-      if (self.arduino_serial.is_open):
-        self.arduino_serial.close()
-      self.arduino_serial.open()	
+    #   # Close the port just in case it wasn't closed properly.
+    #   if (self.arduino_serial.is_open):
+    #     self.arduino_serial.close()
+    #   self.arduino_serial.open()	
 
       
-      # We don't want to read that, so we sleep for a second.
-      # hacky 
-      time.sleep(1)
+    #   # We don't want to read that, so we sleep for a second.
+    #   # hacky 
+    #   time.sleep(1)
 
-      print(f"Arduino serial connection initialized:", end=" ")
-      print(self.arduino_serial)
-    except Exception as e:
-      print(f"Error initializing arduino serial connection: {e}")
+    #   print(f"Arduino serial connection initialized:", end=" ")
+    #   print(self.arduino_serial)
+    # except Exception as e:
+    #   print(f"Error initializing arduino serial connection: {e}")
 
 
 
@@ -92,18 +94,19 @@ class MainWindow(QMainWindow):
   # Used to turn on/off the software switch and bucks.
   # Do not call this method directly, call the toggle_* methods instead.
   def write_to_arduino(self, data: str) -> None:
-    print(f"Sending {data} to arduino")
-    self.arduino_serial.write(data.encode())
-    res = self.arduino_serial.read(1)
+    pass
+    # print(f"Sending {data} to arduino")
+    # self.arduino_serial.write(data.encode())
+    # res = self.arduino_serial.read(1)
 
-    try:
-      if res.decode('ASCII') == 'A':
-        print(f"Arduino successfully received data: {data}")
-      elif res.decode('ASCII') == 'N':
-        # This should never happen because the arduino will only return 'N' if it received something it did not recognize.
-        print(f"Arduino received {data} but did not act on it.")
-    except:
-      print(f"Error decoding response {res}")
+    # try:
+    #   if res.decode('ASCII') == 'A':
+    #     print(f"Arduino successfully received data: {data}")
+    #   elif res.decode('ASCII') == 'N':
+    #     # This should never happen because the arduino will only return 'N' if it received something it did not recognize.
+    #     print(f"Arduino received {data} but did not act on it.")
+    # except:
+    #   print(f"Error decoding response {res}")
 
     # TODO: implement timeout logic
   
@@ -142,49 +145,49 @@ class MainWindow(QMainWindow):
     Reads sensor data from CAN interface and updates the GUI.
     """
   def update_data(self):
-    msg: Optional[can.Message] = self.listener.get_message()
-    if (msg): 
-      match msg.arbitration_id:
-        # TODO: match on msg id and update gui
-        # HV battery modules 1-10 temp
-        case 0x000:
-          self.ui.hvbattery1temp.setText(str(float(msg.data)) + '°c')
-        case 0x001:
-          self.ui.hvbattery2temp.setText(str(float(msg.data)) + '°c')
-        case 0x002:
-          self.ui.hvbattery3temp.setText(str(float(msg.data)) + '°c')
-        case 0x003:
-          self.ui.hvbattery4temp.setText(str(float(msg.data)) + '°c')
-        case 0x004:
-          self.ui.hvbattery5temp.setText(str(float(msg.data)) + '°c')
-        case 0x005:
-          self.ui.hvbattery6temp.setText(str(float(msg.data)) + '°c')
-        case 0x006:
-          self.ui.hvbattery7temp.setText(str(float(msg.data)) + '°c')
-        case 0x007:
-          self.ui.hvbattery8temp.setText(str(float(msg.data)) + '°c')
-        case 0x008:
-          self.ui.hvbattery9temp.setText(str(float(msg.data)) + '°c')
-        case 0x009:
-          self.ui.hvbattery10temp.setText(str(float(msg.data)) + '°c')
-        # high voltage
-        case 0x014:
-          self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, int(msg.data))
-        # HV current
-        case 0x015:
-          self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, frame.hv_current)
-        # LV battery temp
-        case 0x100:	
-          self.ui.lvbatterytemp.settext(str(float(msg.data)) + '°c')
-        # LV battery current
-        case 0x102:
-          self.advance_dataline(self.ui.lvcurrent_x, self.ui.lvcurrent_y, self.ui.lvcurrent_dataline, int(msg.data))
-        # LV voltage
-        case 0x103:
-          self.advance_dataline(self.ui.lvgraph_x, self.ui.lvgraph_y, self.ui.lvgraph_dataline, int(msg.data))
-        # LV PCB temp
-        case 0x104:
-          pass
+    # msg: Optional[can.Message] = self.listener.get_message()
+    # if (msg): 
+    #   match msg.arbitration_id:
+    #     # TODO: match on msg id and update gui
+    #     # HV battery modules 1-10 temp
+    #     case 0x000:
+    #       self.ui.hvbattery1temp.setText(str(float(msg.data)) + '°c')
+    #     case 0x001:
+    #       self.ui.hvbattery2temp.setText(str(float(msg.data)) + '°c')
+    #     case 0x002:
+    #       self.ui.hvbattery3temp.setText(str(float(msg.data)) + '°c')
+    #     case 0x003:
+    #       self.ui.hvbattery4temp.setText(str(float(msg.data)) + '°c')
+    #     case 0x004:
+    #       self.ui.hvbattery5temp.setText(str(float(msg.data)) + '°c')
+    #     case 0x005:
+    #       self.ui.hvbattery6temp.setText(str(float(msg.data)) + '°c')
+    #     case 0x006:
+    #       self.ui.hvbattery7temp.setText(str(float(msg.data)) + '°c')
+    #     case 0x007:
+    #       self.ui.hvbattery8temp.setText(str(float(msg.data)) + '°c')
+    #     case 0x008:
+    #       self.ui.hvbattery9temp.setText(str(float(msg.data)) + '°c')
+    #     case 0x009:
+    #       self.ui.hvbattery10temp.setText(str(float(msg.data)) + '°c')
+    #     # high voltage
+    #     case 0x014:
+    #       self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, int(msg.data))
+    #     # HV current
+    #     case 0x015:
+    #       self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, frame.hv_current)
+    #     # LV battery temp
+    #     case 0x100:	
+    #       self.ui.lvbatterytemp.settext(str(float(msg.data)) + '°c')
+    #     # LV battery current
+    #     case 0x102:
+    #       self.advance_dataline(self.ui.lvcurrent_x, self.ui.lvcurrent_y, self.ui.lvcurrent_dataline, int(msg.data))
+    #     # LV voltage
+    #     case 0x103:
+    #       self.advance_dataline(self.ui.lvgraph_x, self.ui.lvgraph_y, self.ui.lvgraph_dataline, int(msg.data))
+    #     # LV PCB temp
+    #     case 0x104:
+    #       self.ui.convertertemp.setText(str(float(msg.data)) + '°c')
 
   
     """Given a list of x values, a list of y values, a pyqtgraph dataline object, and a new y value, 
@@ -235,7 +238,7 @@ class MainWindow(QMainWindow):
         widget.setTextVisible(True)
 
 if __name__ == "__main__":
-  app = QApplication(sys.argv)
+  app = QApplication([])
   window = MainWindow()
   window.show()
   app.exec_()
