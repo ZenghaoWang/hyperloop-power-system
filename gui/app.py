@@ -62,8 +62,7 @@ class MainWindow(QMainWindow):
 
       self.listener = can.BufferedReader()
       self.notifier = can.Notifier(self.bus, listeners=[self.listener], timeout=0.01)
-      print(f"CAN interface initialized:", end=" ")
-      print(self.bus)
+      print(f"CAN interface initialized")
     except Exception as e:
       print(f"Error initializing CAN interface: {e}")
 
