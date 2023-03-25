@@ -12,8 +12,8 @@ from pyqtgraph import PlotWidget, plot
 import struct
 
 # !!!!!!!!!
-CANABLE_COM_PORT = "COM10" # Placeholder, set this on the testing computer. 
-ARDUINO_COM_PORT = "COM3" # placeholder, set this on the testing computer.
+CANABLE_COM_PORT = "COM18" # Placeholder, set this on the testing computer. 
+ARDUINO_COM_PORT = "COM19" # placeholder, set this on the testing computer.
 # Needs to be set the same as on the arduino, otherwise communication will be gibberish.
 BAUD_RATE = 9600 
 
@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
     super().closeEvent(event)
 
   def init_can(self):
-    self.bus = can.interface.Bus(interface='slcan', channel=CANABLE_COM_PORT, bitrate=500000)
+    self.bus = can.interface.Bus(interface='slcan', channel=CANABLE_COM_PORT, bitrate=1000000)
 
     self.listener = can.BufferedReader()
     can.Notifier(self.bus, [self.listener])
@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
           self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, int(msg.data))
         # HV current
         case 0x015:
-          self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, frame.hv_current)
+          self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, int(msg.data))
         # LV battery temp
         case 0x100:	
           self.ui.lvbatterytemp.settext(str(float(msg.data)) + '°c')
@@ -184,6 +184,9 @@ class MainWindow(QMainWindow):
           self.advance_dataline(self.ui.lvgraph_x, self.ui.lvgraph_y, self.ui.lvgraph_dataline, int(msg.data))
         # LV PCB temp
         case 0x104:
+          # TODO
+          pass
+        case _:
           pass
 
   
