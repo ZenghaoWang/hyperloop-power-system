@@ -95,9 +95,9 @@ class MainWindow(QMainWindow):
       self.arduino_serial.open()	
 
       
-      # We don't want to read that, so we sleep for a second.
+      # We don't want to read that, so we sleep 
       # hacky 
-      time.sleep(1)
+      time.sleep(0.2)
 
       print(f"Arduino serial connection initialized:", end=" ")
       print(self.arduino_serial)
