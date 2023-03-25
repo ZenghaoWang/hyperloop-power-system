@@ -5,19 +5,25 @@ import serial
 from typing import Optional
 import can
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QProgressBar
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QProgressBar, QFrame
 from interface import Ui_MainWindow
 from PyQt5.QtCore import Qt, QTimer
 from pyqtgraph import PlotWidget, plot
 import struct
 
-# !!!!!!!!!
+# !!!!!!!!! CONFIG OPTIIONS !!!!!!!!!
 # The serial port that the can interface is connected to. 
 CAN_INTERFACE_COM_PORT = "COM22" # Placeholder, set this on the testing computer. 
 # The serial port that the arduino due is connected to. 
 ARDUINO_COM_PORT = "COM13" # placeholder, set this on the testing computer.
 # Needs to be set the same as on the arduino, otherwise communication will be gibberish.
 BAUD_RATE = 9600 
+
+# thresholds for battery temps in celsius.
+BATTERY_TEMP_WARNING_THRESHOLD = 50
+BATTERY_TEMP_MAX_THRESHOLD = 60
+
+
 
 def bytes_to_float(b: bytearray) -> float:
   try:
@@ -35,9 +41,9 @@ class MainWindow(QMainWindow):
     self.ui.setupUi(self)
 
 
-		# Setup a serial connection to the arduino due to send signals.
+    # Setup a serial connection to the arduino due to send signals.
     self.init_arduino_serial_conn()		
-		# Start listening for CAN messages
+    # Start listening for CAN messages
     self.init_can()
     # Start updating data at regular intervals
     self.init_timer()
@@ -70,7 +76,7 @@ class MainWindow(QMainWindow):
   def init_timer(self):
     self.ui.timer = QTimer()
     self.ui.timer.setInterval(self.REFRESH_INTERVAL)
-    self.ui.timer.timeout.connect(self.update_data)
+    self.ui.timer.timeout.connect(self.timer_loop)
     self.ui.timer.start()
   
   
@@ -149,44 +155,62 @@ class MainWindow(QMainWindow):
       self.write_to_arduino("d")
 
 
+  """
+  Given <data> containing a temperature value from a CAN frame, update the <temp_label> with the new temperature.
+  If the new temperature is above 50°c, change the <temp_frame> to red.
+  If the new temperature is below 50°, change the <temp_frame> to green.
+  If the new temperature is above 60°c, shut down the system.
+  """
+  def update_temp(self, data: bytearray, temp_label: QLabel, temp_frame: QFrame) -> None:
+    new_temp = bytes_to_float(data) 
+    temp_label.setText(str(new_temp) + '°c')
+
+    if new_temp >= BATTERY_TEMP_WARNING_THRESHOLD:
+      temp_frame.setStyleSheet("border-radius: 20px;background-color: rgb(255, 0, 0);") 
+      if new_temp >= BATTERY_TEMP_MAX_THRESHOLD:
+        self.toggle_system()
+    # Battery temp is fine
+    else:
+      temp_frame.setStyleSheet("border-radius: 20px;background-color: rgb(0, 255, 0);")
+      
 
     """Called for every timer interval.
     Reads sensor data from CAN interface and updates the GUI.
     """
-  def update_data(self):
+  def timer_loop(self):
     msg: Optional[can.Message] = self.listener.get_message(0.1)
     if (msg): 
       match msg.arbitration_id:
         # HV battery modules 1-10 temp
         case 0x000:
-          self.ui.hvbattery1temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery1temp, self.ui.hvbattery1tempframe)
         case 0x001:
-          self.ui.hvbattery2temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery2temp, self.ui.hvbattery2tempframe)
         case 0x002:
-          self.ui.hvbattery3temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery3temp, self.ui.hvbattery3tempframe)
         case 0x003:
-          self.ui.hvbattery4temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery4temp, self.ui.hvbattery4tempframe)
         case 0x004:
-          self.ui.hvbattery5temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery5temp, self.ui.hvbattery5tempframe)
         case 0x005:
-          self.ui.hvbattery6temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery6temp, self.ui.hvbattery6tempframe)
         case 0x006:
-          self.ui.hvbattery7temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery7temp, self.ui.hvbattery7tempframe)
         case 0x007:
-          self.ui.hvbattery8temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery8temp, self.ui.hvbattery8tempframe)
         case 0x008:
-          self.ui.hvbattery9temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery9temp, self.ui.hvbattery9tempframe)
         case 0x009:
-          self.ui.hvbattery10temp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.hvbattery10temp, self.ui.hvbattery10tempframe)
         # high voltage
-        # case 0x014:
-        #   self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, int(bytes_to_float(msg.data)))
-        # # HV current
-        # case 0x015:
-        #   self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, int(bytes_to_float(msg.data)))
+        case 0x014:
+          self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, int(bytes_to_float(msg.data)))
+        # HV current
+        case 0x015:
+          self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, int(bytes_to_float(msg.data)))
         # LV battery temp
         case 0x100:	
-          self.ui.lvbatterytemp.settext(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.lvbatterytemp, self.ui.lvbatteryframe)
         # LV battery current
         case 0x102:
           self.advance_dataline(self.ui.lvcurrent_x, self.ui.lvcurrent_y, self.ui.lvcurrent_dataline, int(bytes_to_float(msg.data)))
@@ -195,9 +219,9 @@ class MainWindow(QMainWindow):
           self.advance_dataline(self.ui.lvgraph_x, self.ui.lvgraph_y, self.ui.lvgraph_dataline, int(bytes_to_float(msg.data)))
         # LV PCB temp
         case 0x104:
-          self.ui.convertertemp.setText(str(bytes_to_float(msg.data)) + '°c')
+          self.update_temp(msg.data, self.ui.convertertemp, self.ui.convertertempframe)
         case _:
-          pass
+          print(f"Unknown CAN ID: {msg.arbitration_id}")
 
   
     """Given a list of x values, a list of y values, a pyqtgraph dataline object, and a new y value, 
@@ -212,7 +236,7 @@ class MainWindow(QMainWindow):
 
     dataline.setData(xs, ys)
 
-	# Triggered upon clicking the power button.
+  # Triggered upon clicking the power button.
   def toggle_system(self):
     # Turn system off
     if self.ui.powerstatuslabel.text() == "Status: ON":
