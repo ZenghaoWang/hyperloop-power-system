@@ -46,13 +46,14 @@ class MainWindow(QMainWindow):
   def closeEvent(self, event) -> None:
     self.arduino_serial.close()
     self.bus.shutdown()
+    self.listener.stop()
     super().closeEvent(event)
 
   def init_can(self):
-    self.bus = can.interface.Bus(interface='slcan', channel=CANABLE_COM_PORT, bitrate=1000000)
+    self.bus = can.ThreadSafeBus(interface='slcan', channel='COM18', bitrate=1000000)
 
     self.listener = can.BufferedReader()
-    can.Notifier(self.bus, [self.listener])
+    self.notifier = can.Notifier(self.bus, listeners=[self.listener], timeout=0.01)
 
 
   def init_timer(self):
@@ -142,7 +143,7 @@ class MainWindow(QMainWindow):
     Reads sensor data from CAN interface and updates the GUI.
     """
   def update_data(self):
-    msg: Optional[can.Message] = self.listener.get_message()
+    msg: Optional[can.Message] = self.listener.get_message(0.1)
     if (msg): 
       match msg.arbitration_id:
         # TODO: match on msg id and update gui

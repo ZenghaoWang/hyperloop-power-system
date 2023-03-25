@@ -42,7 +42,7 @@ if __name__ == "__main__":
     while True:
       msg: Optional[can.Message] = listener.get_message(0.1)
       if msg:
-        print(msg)
+        print(msg.data)
 
 
 
