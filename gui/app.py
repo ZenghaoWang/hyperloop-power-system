@@ -167,7 +167,9 @@ class MainWindow(QMainWindow):
 
     if new_temp >= BATTERY_TEMP_WARNING_THRESHOLD:
       temp_frame.setStyleSheet("border-radius: 20px;background-color: rgb(255, 0, 0);") 
+      print(f"Battery temp is above {BATTERY_TEMP_WARNING_THRESHOLD}°c.") 
       if new_temp >= BATTERY_TEMP_MAX_THRESHOLD:
+        print(f"Battery temp is above {BATTERY_TEMP_MAX_THRESHOLD}°c. Shutting down system.")
         self.toggle_system()
     # Battery temp is fine
     else:
