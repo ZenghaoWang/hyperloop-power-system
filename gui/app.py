@@ -12,13 +12,19 @@ from pyqtgraph import PlotWidget, plot
 import struct
 
 # !!!!!!!!!
-CANABLE_COM_PORT = "COM18" # Placeholder, set this on the testing computer. 
-ARDUINO_COM_PORT = "COM19" # placeholder, set this on the testing computer.
+# The serial port that the can interface is connected to. 
+CAN_INTERFACE_COM_PORT = "COM22" # Placeholder, set this on the testing computer. 
+# The serial port that the arduino due is connected to. 
+ARDUINO_COM_PORT = "COM13" # placeholder, set this on the testing computer.
 # Needs to be set the same as on the arduino, otherwise communication will be gibberish.
 BAUD_RATE = 9600 
 
 def bytes_to_float(b: bytearray) -> float:
-  return struct.unpack('f', b)[0]
+  try:
+    return struct.unpack('f', b)[0]
+  except Exception as e:
+    print(f"Error converting bytes {b} to float: {e}")
+    return -1
 
 class MainWindow(QMainWindow):
   # The interval in msecs between each update 
@@ -51,7 +57,7 @@ class MainWindow(QMainWindow):
     super().closeEvent(event)
 
   def init_can(self):
-    self.bus = can.ThreadSafeBus(interface='slcan', channel='COM18', bitrate=1000000)
+    self.bus = can.ThreadSafeBus(interface='slcan', channel=CAN_INTERFACE_COM_PORT, bitrate=1000000)
 
     self.listener = can.BufferedReader()
     self.notifier = can.Notifier(self.bus, listeners=[self.listener], timeout=0.01)
@@ -149,43 +155,43 @@ class MainWindow(QMainWindow):
       match msg.arbitration_id:
         # HV battery modules 1-10 temp
         case 0x000:
-          self.ui.hvbattery1temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery1temp.setText(str(bytes_to_float(msg.data)) + '°c')
         case 0x001:
-          self.ui.hvbattery2temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery2temp.setText(str(bytes_to_float(msg.data)) + '°c')
         case 0x002:
-          self.ui.hvbattery3temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery3temp.setText(str(bytes_to_float(msg.data)) + '°c')
         case 0x003:
-          self.ui.hvbattery4temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery4temp.setText(str(bytes_to_float(msg.data)) + '°c')
         case 0x004:
-          self.ui.hvbattery5temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery5temp.setText(str(bytes_to_float(msg.data)) + '°c')
         case 0x005:
-          self.ui.hvbattery6temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery6temp.setText(str(bytes_to_float(msg.data)) + '°c')
         case 0x006:
-          self.ui.hvbattery7temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery7temp.setText(str(bytes_to_float(msg.data)) + '°c')
         case 0x007:
-          self.ui.hvbattery8temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery8temp.setText(str(bytes_to_float(msg.data)) + '°c')
         case 0x008:
-          self.ui.hvbattery9temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery9temp.setText(str(bytes_to_float(msg.data)) + '°c')
         case 0x009:
-          self.ui.hvbattery10temp.setText(str(float(msg.data)) + '°c')
+          self.ui.hvbattery10temp.setText(str(bytes_to_float(msg.data)) + '°c')
         # high voltage
         case 0x014:
-          self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, int(msg.data))
+          self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, int(bytes_to_float(msg.data)))
         # HV current
         case 0x015:
-          self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, int(msg.data))
+          self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, int(bytes_to_float(msg.data)))
         # LV battery temp
         case 0x100:	
-          self.ui.lvbatterytemp.settext(str(float(msg.data)) + '°c')
+          self.ui.lvbatterytemp.settext(str(bytes_to_float(msg.data)) + '°c')
         # LV battery current
         case 0x102:
-          self.advance_dataline(self.ui.lvcurrent_x, self.ui.lvcurrent_y, self.ui.lvcurrent_dataline, int(msg.data))
+          self.advance_dataline(self.ui.lvcurrent_x, self.ui.lvcurrent_y, self.ui.lvcurrent_dataline, int(bytes_to_float(msg.data)))
         # LV voltage
         case 0x103:
-          self.advance_dataline(self.ui.lvgraph_x, self.ui.lvgraph_y, self.ui.lvgraph_dataline, int(msg.data))
+          self.advance_dataline(self.ui.lvgraph_x, self.ui.lvgraph_y, self.ui.lvgraph_dataline, int(bytes_to_float(msg.data)))
         # LV PCB temp
         case 0x104:
-          self.ui.convertertemp.setText(str(float(msg.data)) + '°c')
+          self.ui.convertertemp.setText(str(bytes_to_float(msg.data)) + '°c')
         case _:
           pass
 

@@ -34,7 +34,7 @@ if __name__ == "__main__":
   #   except:
   #     print(f"Error decoding response {res}")
     global bus
-    bus = can.ThreadSafeBus(interface='slcan', channel='COM18', bitrate=1000000)
+    bus = can.ThreadSafeBus(interface='slcan', channel='COM22', bitrate=1000000)
 
     listener = can.BufferedReader()
     global n 
