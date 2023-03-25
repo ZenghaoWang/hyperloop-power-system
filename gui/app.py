@@ -17,7 +17,8 @@ ARDUINO_COM_PORT = "COM19" # placeholder, set this on the testing computer.
 # Needs to be set the same as on the arduino, otherwise communication will be gibberish.
 BAUD_RATE = 9600 
 
-
+def bytes_to_float(b: bytearray) -> float:
+  return struct.unpack('f', b)[0]
 
 class MainWindow(QMainWindow):
   # The interval in msecs between each update 

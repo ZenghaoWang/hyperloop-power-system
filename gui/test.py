@@ -1,4 +1,5 @@
 import random
+import struct
 import time
 import can
 from typing import Optional
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     while True:
       msg: Optional[can.Message] = listener.get_message(0.1)
       if msg:
-        print(msg.data)
+        print(struct.unpack('f', msg.data)[0])
 
 
 
