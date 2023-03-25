@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
     self.init_timer()
 
     # Power button toggles system when clicked.
-    # self.ui.powerbutton.clicked.connect(self.toggle_system)
+    self.ui.powerbutton.clicked.connect(self.toggle_system)
 
     for widget in self.ui.centralwidget.findChildren(QProgressBar):
       widget.setTextVisible(True)
@@ -51,16 +51,21 @@ class MainWindow(QMainWindow):
   # Overrides a QT method which runs when the application window is closed.
   # Runs cleanup and closes any connections that need to be closed.
   def closeEvent(self, event) -> None:
+    print("Closing application")
     self.arduino_serial.close()
-    self.bus.shutdown()
-    self.listener.stop()
     super().closeEvent(event)
 
   def init_can(self):
-    self.bus = can.ThreadSafeBus(interface='slcan', channel=CAN_INTERFACE_COM_PORT, bitrate=1000000)
+    try:
+      print(f"Initializing CAN interface on port {CAN_INTERFACE_COM_PORT}")
+      self.bus = can.ThreadSafeBus(interface='slcan', channel=CAN_INTERFACE_COM_PORT, bitrate=1000000)
 
-    self.listener = can.BufferedReader()
-    self.notifier = can.Notifier(self.bus, listeners=[self.listener], timeout=0.01)
+      self.listener = can.BufferedReader()
+      self.notifier = can.Notifier(self.bus, listeners=[self.listener], timeout=0.01)
+      print(f"CAN interface initialized:", end=" ")
+      print(self.bus)
+    except Exception as e:
+      print(f"Error initializing CAN interface: {e}")
 
 
   def init_timer(self):
@@ -73,7 +78,7 @@ class MainWindow(QMainWindow):
   # Setup a serial connection to the arduino due.
   def init_arduino_serial_conn(self) -> None:
     try:
-      print(f"Initializing arduino serial connection")
+      print(f"Initializing arduino serial connection on port {ARDUINO_COM_PORT}")
       self.arduino_serial = serial.Serial()
       self.arduino_serial.baudrate = BAUD_RATE
       self.arduino_serial.port = ARDUINO_COM_PORT
@@ -175,11 +180,11 @@ class MainWindow(QMainWindow):
         case 0x009:
           self.ui.hvbattery10temp.setText(str(bytes_to_float(msg.data)) + '°c')
         # high voltage
-        case 0x014:
-          self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, int(bytes_to_float(msg.data)))
-        # HV current
-        case 0x015:
-          self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, int(bytes_to_float(msg.data)))
+        # case 0x014:
+        #   self.advance_dataline(self.ui.hvgraph_x, self.ui.hvgraph_y, self.ui.hvgraph_dataline, int(bytes_to_float(msg.data)))
+        # # HV current
+        # case 0x015:
+        #   self.advance_dataline(self.ui.hvcurrent_x, self.ui.hvcurrent_y, self.ui.hvcurrent_dataline, int(bytes_to_float(msg.data)))
         # LV battery temp
         case 0x100:	
           self.ui.lvbatterytemp.settext(str(bytes_to_float(msg.data)) + '°c')
@@ -212,9 +217,10 @@ class MainWindow(QMainWindow):
   def toggle_system(self):
     # Turn system off
     if self.ui.powerstatuslabel.text() == "Status: ON":
+      print("Turning system off")
       self.toggle_software_switch(enable=False)
       self.ui.powerbutton.setText("Power On")
-      self.ui.powerbutton.setStyleSheet("border-radius: 20px; background-color: rgb(170, 170, 127);")
+      self.ui.powerbutton.setStyleSheet("background-color: rgb(170, 170, 127);")
 
       self.ui.powerstatuslabel.setStyleSheet(" font-weight: bold; color: rgb(170, 170, 127);")
       self.ui.powerstatuslabel.setText("Status: OFF")
@@ -231,9 +237,10 @@ class MainWindow(QMainWindow):
         widget.setValue(0)
     # Turn system on
     else:
+      print("Turning system on")
       self.toggle_software_switch(enable=True)
       self.ui.powerbutton.setText("Power Off")
-      self.ui.powerbutton.setStyleSheet("border-radius: 20px; background-color: rgb(224, 108, 117);")
+      self.ui.powerbutton.setStyleSheet("background-color: rgb(0, 255, 0);")
 
       self.ui.powerstatuslabel.setStyleSheet(" font-weight: bold; color: #33D918;")
       self.ui.powerstatuslabel.setText("Status: ON")

@@ -486,9 +486,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.powerstatuslabel)
         self.powerbutton = QtWidgets.QPushButton(self.powerstatusframe)
         self.powerbutton.setMinimumSize(QtCore.QSize(181, 71))
-        self.powerbutton.setStyleSheet("border-radius: 20px;\n"
-"background-color: rgb(255, 0, 0);\n"
-"background-color: rgb(224, 108, 117);")
+        self.powerbutton.setStyleSheet("background-color: rgb(0, 255, 0);\n")
         self.powerbutton.setObjectName("powerbutton")
         self.verticalLayout_2.addWidget(self.powerbutton)
         self.powerlvlayout.addWidget(self.powerstatusframe)
