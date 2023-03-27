@@ -37,10 +37,17 @@
 #define CURRENT_ANALOG_INPUT_PORT A0
 // The analog input port used to read the voltage of the LV System.
 #define VOLTAGE_ANALOG_INPUT_PORT A1
-// The analog input port used to read the temperature of the PCB.
-#define TEMP_ANALOG_INPUT_PORT A2
+// The analog input ports used to read the buck voltages.
+#define BUCK_A_VOLTAGE_ANALOG_INPUT_PORT A2
+#define BUCK_B_VOLTAGE_ANALOG_INPUT_PORT A3
+#define BUCK_C_VOLTAGE_ANALOG_INPUT_PORT A4
+#define BUCK_D_VOLTAGE_ANALOG_INPUT_PORT A5
 // The I2C address of the slave Arduino monitoring the battery module.
 #define BATTERY_MODULE_MCU_I2C_ADDR 0
+// Multiplier used when converting a voltage divded signal to the original Vin.
+//  R1 is the pull up resistor to Vin
+//  R2 is the pull down resistor to ground
+#define VOLTAGE_DIV_MULT(R1, R2) ((R1 + R2) / R2)
 
 // Flag for when data should be sent over the CAN bus.
 volatile int should_send_data = false;
@@ -94,27 +101,6 @@ static inline float convert_sensor_value_to_voltage(int analog_sensor_value) {
   // Note: the analogReference() function is ignored on ArduinoDues, therefore
   //       the voltage on the pins cannot exceed 3.3V.
   return analog_sensor_value * (3.3 / 4095.0);
-}
-
-// TODO: Need more information on the current sensor. For now this function
-//       just returns the voltage on the analog port.
-static inline float convert_sensor_value_to_current(int analog_sensor_value) {
-  float port_voltage = convert_sensor_value_to_voltage(analog_sensor_value);
-  return port_voltage;
-}
-
-// TODO: Need more information on the voltage sensor. For now this function
-//       just returns the voltage on the analog port.
-static inline float convert_sensor_value_to_ext_voltage(int analog_sensor_value) {
-  float port_voltage = convert_sensor_value_to_voltage(analog_sensor_value);
-  return port_voltage;
-}
-
-// TODO: Need more information on the temperature sensor on the PCB. For now
-//       this function just returns the voltage on the analog port.
-static inline float convert_sensor_value_to_temp(int analog_sensor_value) {
-  float port_voltage = convert_sensor_value_to_voltage(analog_sensor_value);
-  return port_voltage;
 }
 
 // Helper method for sending data over the CAN bus.
@@ -213,16 +199,35 @@ void loop() {
     }
     send_data_over_can_bus(&battery_module_temp, sizeof(float), 0x100, 0);
 
+    // Get the LV Battery Voltage
+    float LV_battery_voltage = VOLTAGE_DIV_MULT(100, 10) * convert_sensor_value_to_voltage(analogRead(VOLTAGE_ANALOG_INPUT_PORT));
+    send_data_over_can_bus(&LV_battery_voltage, sizeof(float), 0x101, 4);
+
     // Get the LV Battery Current.
-    float LV_current = convert_sensor_value_to_current(analogRead(CURRENT_ANALOG_INPUT_PORT));
+    // TODO: Remove magic number
+    float LV_current = convert_sensor_value_to_voltage(analogRead(CURRENT_ANALOG_INPUT_PORT)) / .4015;
     send_data_over_can_bus(&LV_current, sizeof(float), 0x102, 4);
 
     // Get the LV System Voltage.
-    float LV_voltage = convert_sensor_value_to_ext_voltage(analogRead(VOLTAGE_ANALOG_INPUT_PORT));
+    float LV_voltage = VOLTAGE_DIV_MULT(220, 10) * convert_sensor_value_to_voltage(analogRead(VOLTAGE_ANALOG_INPUT_PORT));
     send_data_over_can_bus(&LV_voltage, sizeof(float), 0x103, 4);
 
     // Get the LV PCB Temperature.
-    float PCB_temp = convert_sensor_value_to_temp(analogRead(TEMP_ANALOG_INPUT_PORT));
-    send_data_over_can_bus(&PCB_temp, sizeof(float), 0x104, 7);
+    // TODO: This is wrong. The temperature sensor communicates over SPI
+    // float PCB_temp = convert_sensor_value_to_voltage(analogRead(TEMP_ANALOG_INPUT_PORT));
+    // send_data_over_can_bus(&PCB_temp, sizeof(float), 0x104, 7);
+
+    // Buck A: 24V
+    float buck_A_voltage = VOLTAGE_DIV_MULT(100, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_A_VOLTAGE_ANALOG_INPUT_PORT));
+    send_data_over_can_bus(&buck_A_voltage, sizeof(float), 0x105, 4);
+    // Buck B: 12V
+    float buck_B_voltage = VOLTAGE_DIV_MULT(51, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_B_VOLTAGE_ANALOG_INPUT_PORT));
+    send_data_over_can_bus(&buck_B_voltage, sizeof(float), 0x106, 4);
+    // Buck C: 12V
+    float buck_C_voltage = VOLTAGE_DIV_MULT(51, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_B_VOLTAGE_ANALOG_INPUT_PORT));
+    send_data_over_can_bus(&buck_C_voltage, sizeof(float), 0x107, 4);
+    // Buck D: 5V
+    float buck_D_voltage = VOLTAGE_DIV_MULT(20, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_B_VOLTAGE_ANALOG_INPUT_PORT));
+    send_data_over_can_bus(&buck_D_voltage, sizeof(float), 0x108, 4);
   }
 }
