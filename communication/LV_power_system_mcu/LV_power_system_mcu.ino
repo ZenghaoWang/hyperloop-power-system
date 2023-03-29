@@ -20,6 +20,7 @@
 #include "variant.h"
 #include <due_can.h>
 #include <Wire.h>
+#include <SPI.h>
 
 // The baud rate of the serial connection
 #define SERIAL_BAUD_RATE 9600
@@ -33,6 +34,8 @@
 #define BUCK_B_EN_DIGITAL_OUTPUT_PORT 4
 #define BUCK_C_EN_DIGITAL_OUTPUT_PORT 5
 #define BUCK_D_EN_DIGITAL_OUTPUT_PORT 6
+// SPI thermocouple chip select
+#define THERMOCOUPLE_SPI_CS 7
 // The analog input port used to read the current of the LV Battery.
 #define CURRENT_ANALOG_INPUT_PORT A0
 // The analog input port used to read the voltage of the LV System.
@@ -51,6 +54,12 @@
 
 // Flag for when data should be sent over the CAN bus.
 volatile int should_send_data = false;
+
+// Global variables for reading the thermocouple
+struct {
+  float temp = NAN;
+  uint32_t lastcalltime = 0;
+} thermocouple;
 
 void setup() {
   // Setup Serial communication.
@@ -79,6 +88,10 @@ void setup() {
   digitalWrite(BUCK_B_EN_DIGITAL_OUTPUT_PORT, HIGH);
   digitalWrite(BUCK_C_EN_DIGITAL_OUTPUT_PORT, HIGH);
   digitalWrite(BUCK_D_EN_DIGITAL_OUTPUT_PORT, HIGH);
+  // Setup the thermocouple SPI interface
+  pinMode(THERMOCOUPLE_SPI_CS, OUTPUT);
+  digitalWrite(THERMOCOUPLE_SPI_CS, HIGH);
+  SPI.begin();
 }
 
 // IRQ handler for the RTT
@@ -101,6 +114,35 @@ static inline float convert_sensor_value_to_voltage(int analog_sensor_value) {
   // Note: the analogReference() function is ignored on ArduinoDues, therefore
   //       the voltage on the pins cannot exceed 3.3V.
   return analog_sensor_value * (3.3 / 4095.0);
+}
+
+// Helper function to get the temperature from the thermocouple over SPI.
+// Updates the global variable "thermocouple".
+//    returns the temperature in C. If no device is connected, returns NAN.
+static inline float get_thermocouple_temp_in_c() {
+  // Only check the thermocouple every 250 ms
+  //  This is related to the period of the MAX6675.
+  if (millis() - thermocouple.lastcalltime >= 250) {
+    // Begin the transaction using the SPI settings compatible with the MAX6675
+    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+    // Get the data
+    digitalWrite(THERMOCOUPLE_SPI_CS, LOW);
+    uint16_t received_data = SPI.transfer16(NULL);
+    digitalWrite(THERMOCOUPLE_SPI_CS, HIGH);
+    // End the transaction
+    SPI.endTransaction();
+    thermocouple.lastcalltime = millis();
+    // Update the temperature data in the global struct
+    // Bottom three bits are used for control signals
+    if (received_data & 0x04) {
+      // If the bottom three bits are (100), then there is nothing connected.
+      thermocouple.temp = NAN;
+    } else {
+      // Thermocouple stores the data 4x the amount
+      thermocouple.temp = (received_data >> 3) * 0.25;
+    }
+  }
+  return thermocouple.temp;
 }
 
 // Helper method for sending data over the CAN bus.
@@ -204,8 +246,8 @@ void loop() {
     send_data_over_can_bus(&LV_battery_voltage, sizeof(float), 0x101, 4);
 
     // Get the LV Battery Current.
-    // TODO: Remove magic number
-    float LV_current = convert_sensor_value_to_voltage(analogRead(CURRENT_ANALOG_INPUT_PORT)) / .4015;
+    //  Magic number comes from the sensor providing a resolution of 401.5 mV per A
+    float LV_current = 2.49066 * convert_sensor_value_to_voltage(analogRead(CURRENT_ANALOG_INPUT_PORT));
     send_data_over_can_bus(&LV_current, sizeof(float), 0x102, 4);
 
     // Get the LV System Voltage.
@@ -213,9 +255,8 @@ void loop() {
     send_data_over_can_bus(&LV_voltage, sizeof(float), 0x103, 4);
 
     // Get the LV PCB Temperature.
-    // TODO: This is wrong. The temperature sensor communicates over SPI
-    // float PCB_temp = convert_sensor_value_to_voltage(analogRead(TEMP_ANALOG_INPUT_PORT));
-    // send_data_over_can_bus(&PCB_temp, sizeof(float), 0x104, 7);
+    float PCB_temp = get_thermocouple_temp_in_c();
+    send_data_over_can_bus(&PCB_temp, sizeof(float), 0x104, 7);
 
     // Buck A: 24V
     float buck_A_voltage = VOLTAGE_DIV_MULT(100, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_A_VOLTAGE_ANALOG_INPUT_PORT));
@@ -224,10 +265,10 @@ void loop() {
     float buck_B_voltage = VOLTAGE_DIV_MULT(51, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_B_VOLTAGE_ANALOG_INPUT_PORT));
     send_data_over_can_bus(&buck_B_voltage, sizeof(float), 0x106, 4);
     // Buck C: 12V
-    float buck_C_voltage = VOLTAGE_DIV_MULT(51, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_B_VOLTAGE_ANALOG_INPUT_PORT));
+    float buck_C_voltage = VOLTAGE_DIV_MULT(51, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_C_VOLTAGE_ANALOG_INPUT_PORT));
     send_data_over_can_bus(&buck_C_voltage, sizeof(float), 0x107, 4);
     // Buck D: 5V
-    float buck_D_voltage = VOLTAGE_DIV_MULT(20, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_B_VOLTAGE_ANALOG_INPUT_PORT));
+    float buck_D_voltage = VOLTAGE_DIV_MULT(20, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_D_VOLTAGE_ANALOG_INPUT_PORT));
     send_data_over_can_bus(&buck_D_voltage, sizeof(float), 0x108, 4);
   }
 }
