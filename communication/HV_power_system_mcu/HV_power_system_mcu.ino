@@ -28,6 +28,14 @@
 #define BATTERY_MODULE_MCU_I2C_ADDRS {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 // The number of I2C slaves monitoring the battery modules.
 #define NUM_BATTERY_MODULE_MCUS 10
+// Multiplier used when converting a voltage divded signal to the original Vin.
+//  R1 is the pull up resistor to Vin
+//  R2 is the pull down resistor to ground
+#define VOLTAGE_DIV_MULT(R1, R2) ((R1 + R2) / R2)
+// Multiplier used when a resistor is put in line with a current source
+// we wish to read.
+//    RES is the resistor's resistance in Ohms
+#define CURRENT_RES_MULT(RES) ((6250.0 / RES) - 25.0)
 
 // Flag for when data should be sent over the CAN bus.
 volatile int should_send_data = false;
@@ -69,20 +77,6 @@ static inline float convert_sensor_value_to_voltage(int analog_sensor_value) {
   return analog_sensor_value * (3.3 / 4095.0);
 }
 
-// TODO: Need more information on the current sensor. For now this function
-//       just returns the voltage on the analog port.
-static inline float convert_sensor_value_to_current(int analog_sensor_value) {
-  float port_voltage = convert_sensor_value_to_voltage(analog_sensor_value);
-  return port_voltage;
-}
-
-// TODO: Need more information on the voltage sensor. For now this function
-//       just returns the voltage on the analog port.
-static inline float convert_sensor_value_to_ext_voltage(int analog_sensor_value) {
-  float port_voltage = convert_sensor_value_to_voltage(analog_sensor_value);
-  return port_voltage;
-}
-
 // Helper method for sending data over the CAN bus.
 //  data: pointer the data payload to send
 //  length: length of the payload (must be 8 or less)
@@ -116,11 +110,12 @@ void loop() {
     }
 
     // Get the HV System Voltage.
-    float HV_voltage = convert_sensor_value_to_ext_voltage(analogRead(VOLTAGE_ANALOG_INPUT_PORT));
+    //  Note: the HV voltage sensor produces a 5V output. Same resistor divider as the 5V buck was used.
+    float HV_voltage = VOLTAGE_DIV_MULT(20, 10) * convert_sensor_value_to_voltage(analogRead(VOLTAGE_ANALOG_INPUT_PORT));
     send_data_over_can_bus(&HV_voltage, sizeof(float), 0x014, 3);
 
     // Get the HV System Current.
-    float HV_current = convert_sensor_value_to_current(analogRead(CURRENT_ANALOG_INPUT_PORT));
+    float HV_current = CURRENT_RES_MULT(91.6) * convert_sensor_value_to_voltage(analogRead(CURRENT_ANALOG_INPUT_PORT));
     send_data_over_can_bus(&HV_current, sizeof(float), 0x015, 3);
   }
 }

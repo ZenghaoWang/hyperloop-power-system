@@ -36,9 +36,14 @@ TODO: Put this information in a header file somehow.
 | 0x014 | HV System Voltage | fp32 | 3 |
 | 0x015 | HV System Current | fp32 | 3 |
 | 0x100 | LV Battery Module Temp. | fp32 | 0 |
+| 0x101 | LV Battery Voltage | fp32 | 4 |
 | 0x102 | LV Battery Current | fp32 | 4 |
 | 0x103 | LV System Voltage | fp32 | 4 |
 | 0x104 | LV PCB Temp. | fp32 | 7 |
+| 0x105 | Buck A Voltage | fp32 | 4 |
+| 0x106 | Buck B Voltage | fp32 | 4 |
+| 0x107 | Buck C Voltage | fp32 | 4 |
+| 0x108 | Buck D Voltage | fp32 | 4 |
 
 ## LV MCU Signals
 The LV MCU has signals that it will use to enable or disable different things in the LV system. These signals are communicated with the LV MCU over serial USB using a 1 Byte command. The MCU will respond to the command with a 1 Byte Response. Each Byte sent will be Acknowledged or No-Acknowledge if the message was received. Multiple Bytes may be sent before a response is received. The Arduino comes with a buffer to hold Serial messages before they are handled.
