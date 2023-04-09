@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Power System Testing Interface</string>
+   <string>UTHT Power System Testing Interface</string>
   </property>
   <property name="styleSheet">
    <string notr="true">/*
@@ -231,7 +231,7 @@ QTabBar::tab {
 	color: #808086;
 	padding: 3px;
 	margin-left:3px;
-	width: 50px;
+	width: 70px;
 	height: 25px;
 	background-color: #1e1d23;
 }
@@ -420,7 +420,7 @@ QSlider::sub-page:vertical {
        <number>35</number>
       </property>
       <property name="bottomMargin">
-       <number>200</number>
+       <number>150</number>
       </property>
       <item>
        <widget class="QLabel" name="label">
@@ -438,17 +438,17 @@ QSlider::sub-page:vertical {
         </property>
         <property name="font">
          <font>
-          <pointsize>20</pointsize>
+          <pointsize>22</pointsize>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: rgb(255, 221, 98);
-color: #6284FF;
+         <string notr="true">color: #99615f;
+background-color:  rgb(121, 195, 119);
 border-radius: 20%;
 </string>
         </property>
         <property name="text">
-         <string>Status: DEBUG</string>
+         <string>Status: ON</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignHCenter|Qt::AlignTop</set>
@@ -465,10 +465,13 @@ border-radius: 20%;
         </property>
         <property name="font">
          <font>
-          <pointsize>20</pointsize>
+          <pointsize>22</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>Power System Interface</string>
@@ -482,7 +485,29 @@ border-radius: 20%;
        </widget>
       </item>
       <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::MinimumExpanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <widget class="QFrame" name="hvsystemtoggleframe">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="topMargin">
           <number>250</number>
@@ -497,15 +522,22 @@ border-radius: 20%;
            </property>
            <property name="font">
             <font>
-             <pointsize>15</pointsize>
+             <pointsize>18</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">padding-left: 5px;
-</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>HV System Toggle</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -517,6 +549,12 @@ border-radius: 20%;
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>154</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
              <width>16777215</width>
@@ -525,21 +563,44 @@ border-radius: 20%;
            </property>
            <property name="font">
             <font>
-             <pointsize>20</pointsize>
+             <pointsize>28</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">border: 1px solid; 
-border-radius:85%; 
-color: rgb(200, 0, 0);
-
+border-radius:70%; 
+color: #99615f;
 background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
-                                      stop: 0 #dadbde, stop: 1 rgb(0, 255, 0));</string>
+                                      stop: 0 #dadbde, stop:  1 rgb(80, 195, 26));</string>
            </property>
            <property name="text">
             <string>Engaged</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="hvcheckbox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Show 288V Battery</string>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>16</width>
+             <height>16</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -550,6 +611,11 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
     </item>
     <item>
      <widget class="QTabWidget" name="tabs">
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
       <property name="focusPolicy">
        <enum>Qt::WheelFocus</enum>
       </property>
@@ -563,7 +629,7 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="iconSize">
        <size>
@@ -621,16 +687,31 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
        <attribute name="title">
         <string>Voltage</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="PlotWidget" name="voltagegraph"/>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_temperature">
        <attribute name="title">
         <string>Temp</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="PlotWidget" name="tempgraph"/>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_current">
        <attribute name="title">
         <string>Current</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="PlotWidget" name="currentgraph"/>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>

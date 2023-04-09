@@ -232,7 +232,7 @@ class Ui_MainWindow(object):
 "    color: #808086;\n"
 "    padding: 3px;\n"
 "    margin-left:3px;\n"
-"    width: 50px;\n"
+"    width: 70px;\n"
 "    height: 25px;\n"
 "    background-color: #1e1d23;\n"
 "}\n"
@@ -417,7 +417,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.powerbuttonlayout = QtWidgets.QVBoxLayout()
-        self.powerbuttonlayout.setContentsMargins(-1, 35, -1, 200)
+        self.powerbuttonlayout.setContentsMargins(-1, 35, -1, 150)
         self.powerbuttonlayout.setObjectName("powerbuttonlayout")
         self.label = QtWidgets.QLabel(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
@@ -427,10 +427,10 @@ class Ui_MainWindow(object):
         self.label.setSizePolicy(sizePolicy)
         self.label.setMaximumSize(QtCore.QSize(16777215, 16777215))
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(22)
         self.label.setFont(font)
-        self.label.setStyleSheet("background-color: rgb(255, 221, 98);\n"
-"color: #6284FF;\n"
+        self.label.setStyleSheet("color: #99615f;\n"
+"background-color:  rgb(121, 195, 119);\n"
 "border-radius: 20%;\n"
 "")
         self.label.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
@@ -443,14 +443,22 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.titlelabel.sizePolicy().hasHeightForWidth())
         self.titlelabel.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(22)
         font.setBold(True)
         font.setWeight(75)
         self.titlelabel.setFont(font)
+        self.titlelabel.setStyleSheet("")
         self.titlelabel.setWordWrap(True)
         self.titlelabel.setObjectName("titlelabel")
         self.powerbuttonlayout.addWidget(self.titlelabel)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding)
+        self.powerbuttonlayout.addItem(spacerItem)
         self.hvsystemtoggleframe = QtWidgets.QFrame(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.hvsystemtoggleframe.sizePolicy().hasHeightForWidth())
+        self.hvsystemtoggleframe.setSizePolicy(sizePolicy)
         self.hvsystemtoggleframe.setObjectName("hvsystemtoggleframe")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.hvsystemtoggleframe)
         self.verticalLayout_3.setContentsMargins(-1, 250, -1, -1)
@@ -462,10 +470,13 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.hvsystemtogglelabel.sizePolicy().hasHeightForWidth())
         self.hvsystemtogglelabel.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
-        font.setPointSize(15)
+        font.setPointSize(18)
+        font.setBold(True)
+        font.setWeight(75)
         self.hvsystemtogglelabel.setFont(font)
-        self.hvsystemtogglelabel.setStyleSheet("padding-left: 5px;\n"
-"")
+        self.hvsystemtogglelabel.setStyleSheet("")
+        self.hvsystemtogglelabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.hvsystemtogglelabel.setWordWrap(True)
         self.hvsystemtogglelabel.setObjectName("hvsystemtogglelabel")
         self.verticalLayout_3.addWidget(self.hvsystemtogglelabel)
         self.hvsystembutton = QtWidgets.QPushButton(self.hvsystemtoggleframe)
@@ -474,23 +485,38 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.hvsystembutton.sizePolicy().hasHeightForWidth())
         self.hvsystembutton.setSizePolicy(sizePolicy)
+        self.hvsystembutton.setMinimumSize(QtCore.QSize(0, 154))
         self.hvsystembutton.setMaximumSize(QtCore.QSize(16777215, 187))
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(28)
         font.setBold(False)
         font.setWeight(50)
         self.hvsystembutton.setFont(font)
         self.hvsystembutton.setStyleSheet("border: 1px solid; \n"
-"border-radius:85%; \n"
-"color: rgb(200, 0, 0);\n"
-"\n"
+"border-radius:70%; \n"
+"color: #99615f;\n"
 "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,\n"
-"                                      stop: 0 #dadbde, stop: 1 rgb(0, 255, 0));")
+"                                      stop: 0 #dadbde, stop:  1 rgb(80, 195, 26));")
         self.hvsystembutton.setObjectName("hvsystembutton")
         self.verticalLayout_3.addWidget(self.hvsystembutton)
+        self.hvcheckbox = QtWidgets.QCheckBox(self.hvsystemtoggleframe)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.hvcheckbox.sizePolicy().hasHeightForWidth())
+        self.hvcheckbox.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.hvcheckbox.setFont(font)
+        self.hvcheckbox.setIconSize(QtCore.QSize(16, 16))
+        self.hvcheckbox.setObjectName("hvcheckbox")
+        self.verticalLayout_3.addWidget(self.hvcheckbox)
         self.powerbuttonlayout.addWidget(self.hvsystemtoggleframe)
         self.horizontalLayout.addLayout(self.powerbuttonlayout)
         self.tabs = QtWidgets.QTabWidget(self.centralwidget)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.tabs.setFont(font)
         self.tabs.setFocusPolicy(QtCore.Qt.WheelFocus)
         self.tabs.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.tabs.setTabPosition(QtWidgets.QTabWidget.North)
@@ -528,27 +554,43 @@ class Ui_MainWindow(object):
         self.tabs.addTab(self.tab_summary, "")
         self.tab_voltage = QtWidgets.QWidget()
         self.tab_voltage.setObjectName("tab_voltage")
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.tab_voltage)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.voltagegraph = PlotWidget(self.tab_voltage)
+        self.voltagegraph.setObjectName("voltagegraph")
+        self.gridLayout_2.addWidget(self.voltagegraph, 0, 0, 1, 1)
         self.tabs.addTab(self.tab_voltage, "")
         self.tab_temperature = QtWidgets.QWidget()
         self.tab_temperature.setObjectName("tab_temperature")
+        self.gridLayout_3 = QtWidgets.QGridLayout(self.tab_temperature)
+        self.gridLayout_3.setObjectName("gridLayout_3")
+        self.tempgraph = PlotWidget(self.tab_temperature)
+        self.tempgraph.setObjectName("tempgraph")
+        self.gridLayout_3.addWidget(self.tempgraph, 0, 0, 1, 1)
         self.tabs.addTab(self.tab_temperature, "")
         self.tab_current = QtWidgets.QWidget()
         self.tab_current.setObjectName("tab_current")
+        self.gridLayout_4 = QtWidgets.QGridLayout(self.tab_current)
+        self.gridLayout_4.setObjectName("gridLayout_4")
+        self.currentgraph = PlotWidget(self.tab_current)
+        self.currentgraph.setObjectName("currentgraph")
+        self.gridLayout_4.addWidget(self.currentgraph, 0, 0, 1, 1)
         self.tabs.addTab(self.tab_current, "")
         self.horizontalLayout.addWidget(self.tabs)
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Power System Testing Interface"))
-        self.label.setText(_translate("MainWindow", "Status: DEBUG"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "UTHT Power System Testing Interface"))
+        self.label.setText(_translate("MainWindow", "Status: ON"))
         self.titlelabel.setText(_translate("MainWindow", "Power System Interface"))
         self.hvsystemtogglelabel.setText(_translate("MainWindow", "HV System Toggle"))
         self.hvsystembutton.setText(_translate("MainWindow", "Engaged"))
+        self.hvcheckbox.setText(_translate("MainWindow", "Show 288V Battery"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_summary), _translate("MainWindow", "Summary"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_voltage), _translate("MainWindow", "Voltage"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_temperature), _translate("MainWindow", "Temp"))
