@@ -58,8 +58,11 @@ class Ui_MainWindow(object):
 "    border-style: solid;\n"
 "    color: #a9b7c6;\n"
 "    padding: 2px;\n"
-"border-radius: 20%;\n"
-"    background-color: #1e1d23;\n"
+"    background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,\n"
+"                                      stop: 0 #dadbde, stop:  1 rgb(80, 195, 26));\n"
+"border: 1px solid; \n"
+"border-radius:70%; \n"
+"color: #99615f;\n"
 "}\n"
 "QPushButton::default{\n"
 "    border-style: inset;\n"
@@ -72,6 +75,39 @@ class Ui_MainWindow(object):
 "    padding: 2px;\n"
 "    background-color: #1e1d23;\n"
 "}\n"
+"QPushButton:hover{\n"
+"    border-style: solid;\n"
+"    border-top-color: #ffffff;\n"
+"    border-right-color: #ffffff;\n"
+"    border-left-color: #ffffff;\n"
+"    border-bottom-color: #ffffff;\n"
+"    border-left-width: 1px;\n"
+"    border-right-width: 1px;\n"
+"    border-top-width: 1px;\n"
+"    border-bottom-width: 1px;\n"
+"\n"
+"    border-style: solid;\n"
+"    background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,\n"
+"                                      stop: 0 #dadbde, stop:  1 rgb(68, 162, 21));\n"
+"    padding-bottom: 2px;\n"
+"     color: #FFFFFF;\n"
+"}\n"
+"QPushButton:pressed{\n"
+"    border-style: solid;\n"
+"    \n"
+"    border-top-color: #ffffff;\n"
+"    border-right-color: #ffffff;\n"
+"    border-left-color: #ffffff;\n"
+"    border-bottom-color: #ffffff;\n"
+"    border-left-width: 3px;\n"
+"    border-right-width: 3px;\n"
+"    border-top-width: 3px;\n"
+"    border-bottom-width: 3px;\n"
+"    border-style: solid;\n"
+"     color: #FFFFFF;\n"
+"    padding-bottom: 1px;\n"
+"    background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,\n"
+"                                      stop: 0 #dadbde, stop:  1 rgb(68, 162, 21));}\n"
 "QToolButton {\n"
 "    border-style: solid;\n"
 "    border-top-color: transparent;\n"
@@ -96,30 +132,7 @@ class Ui_MainWindow(object):
 "    padding-bottom: 1px;\n"
 "    background-color: #1e1d23;\n"
 "}\n"
-"QPushButton:hover{\n"
-"    border-style: solid;\n"
-"    border-top-color: transparent;\n"
-"    border-right-color: transparent;\n"
-"    border-left-color: transparent;\n"
-"    border-bottom-color: #37efba;\n"
-"    border-bottom-width: 1px;\n"
-"    border-style: solid;\n"
-"    color: #FFFFFF;\n"
-"    padding-bottom: 2px;\n"
-"    background-color: #1e1d23;\n"
-"}\n"
-"QPushButton:pressed{\n"
-"    border-style: solid;\n"
-"    border-top-color: transparent;\n"
-"    border-right-color: transparent;\n"
-"    border-left-color: transparent;\n"
-"    border-bottom-color: #37efba;\n"
-"    border-bottom-width: 2px;\n"
-"    border-style: solid;\n"
-"    color: #37efba;\n"
-"    padding-bottom: 1px;\n"
-"    background-color: #1e1d23;\n"
-"}\n"
+"n\n"
 "QPushButton:disabled{\n"
 "    border-style: solid;\n"
 "    border-top-color: transparent;\n"
@@ -492,11 +505,9 @@ class Ui_MainWindow(object):
         font.setBold(False)
         font.setWeight(50)
         self.hvsystembutton.setFont(font)
-        self.hvsystembutton.setStyleSheet("border: 1px solid; \n"
-"border-radius:70%; \n"
-"color: #99615f;\n"
-"background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,\n"
-"                                      stop: 0 #dadbde, stop:  1 rgb(80, 195, 26));")
+        self.hvsystembutton.setStyleSheet("")
+        self.hvsystembutton.setCheckable(False)
+        self.hvsystembutton.setChecked(False)
         self.hvsystembutton.setObjectName("hvsystembutton")
         self.verticalLayout_3.addWidget(self.hvsystembutton)
         self.hvcheckbox = QtWidgets.QCheckBox(self.hvsystemtoggleframe)
@@ -539,16 +550,16 @@ class Ui_MainWindow(object):
         self.gridLayout.setContentsMargins(-1, -1, -1, 9)
         self.gridLayout.setHorizontalSpacing(6)
         self.gridLayout.setObjectName("gridLayout")
-        self.summaryvoltagebargraph = PlotWidget(self.tab_summary)
+        self.summaryvoltagebargraph = VBarPlot(self.tab_summary)
         self.summaryvoltagebargraph.setObjectName("summaryvoltagebargraph")
         self.gridLayout.addWidget(self.summaryvoltagebargraph, 0, 4, 1, 1)
-        self.summaryvoltagelinegraph = PlotWidget(self.tab_summary)
+        self.summaryvoltagelinegraph = VLinePlot(self.tab_summary)
         self.summaryvoltagelinegraph.setObjectName("summaryvoltagelinegraph")
         self.gridLayout.addWidget(self.summaryvoltagelinegraph, 0, 2, 1, 1)
-        self.summarytemplinegraph = PlotWidget(self.tab_summary)
+        self.summarytemplinegraph = TLinePlot(self.tab_summary)
         self.summarytemplinegraph.setObjectName("summarytemplinegraph")
         self.gridLayout.addWidget(self.summarytemplinegraph, 1, 2, 1, 1)
-        self.summarytempbargraph = PlotWidget(self.tab_summary)
+        self.summarytempbargraph = TBarPlot(self.tab_summary)
         self.summarytempbargraph.setObjectName("summarytempbargraph")
         self.gridLayout.addWidget(self.summarytempbargraph, 1, 4, 1, 1)
         self.tabs.addTab(self.tab_summary, "")
@@ -556,7 +567,7 @@ class Ui_MainWindow(object):
         self.tab_voltage.setObjectName("tab_voltage")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.tab_voltage)
         self.gridLayout_2.setObjectName("gridLayout_2")
-        self.voltagegraph = PlotWidget(self.tab_voltage)
+        self.voltagegraph = VLinePlot(self.tab_voltage)
         self.voltagegraph.setObjectName("voltagegraph")
         self.gridLayout_2.addWidget(self.voltagegraph, 0, 0, 1, 1)
         self.tabs.addTab(self.tab_voltage, "")
@@ -564,7 +575,7 @@ class Ui_MainWindow(object):
         self.tab_temperature.setObjectName("tab_temperature")
         self.gridLayout_3 = QtWidgets.QGridLayout(self.tab_temperature)
         self.gridLayout_3.setObjectName("gridLayout_3")
-        self.tempgraph = PlotWidget(self.tab_temperature)
+        self.tempgraph = TLinePlot(self.tab_temperature)
         self.tempgraph.setObjectName("tempgraph")
         self.gridLayout_3.addWidget(self.tempgraph, 0, 0, 1, 1)
         self.tabs.addTab(self.tab_temperature, "")
@@ -572,7 +583,7 @@ class Ui_MainWindow(object):
         self.tab_current.setObjectName("tab_current")
         self.gridLayout_4 = QtWidgets.QGridLayout(self.tab_current)
         self.gridLayout_4.setObjectName("gridLayout_4")
-        self.currentgraph = PlotWidget(self.tab_current)
+        self.currentgraph = CLinePlot(self.tab_current)
         self.currentgraph.setObjectName("currentgraph")
         self.gridLayout_4.addWidget(self.currentgraph, 0, 0, 1, 1)
         self.tabs.addTab(self.tab_current, "")
@@ -580,7 +591,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(1)
+        self.tabs.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -595,4 +606,4 @@ class Ui_MainWindow(object):
         self.tabs.setTabText(self.tabs.indexOf(self.tab_voltage), _translate("MainWindow", "Voltage"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_temperature), _translate("MainWindow", "Temp"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_current), _translate("MainWindow", "Current"))
-from pyqtgraph import PlotWidget
+from plot import CLinePlot, TBarPlot, TLinePlot, VBarPlot, VLinePlot

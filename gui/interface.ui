@@ -57,8 +57,11 @@ QPushButton{
 	border-style: solid;
 	color: #a9b7c6;
 	padding: 2px;
-border-radius: 20%;
-	background-color: #1e1d23;
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
+                                      stop: 0 #dadbde, stop:  1 rgb(80, 195, 26));
+border: 1px solid; 
+border-radius:70%; 
+color: #99615f;
 }
 QPushButton::default{
 	border-style: inset;
@@ -71,6 +74,39 @@ QPushButton::default{
 	padding: 2px;
 	background-color: #1e1d23;
 }
+QPushButton:hover{
+	border-style: solid;
+	border-top-color: #ffffff;
+	border-right-color: #ffffff;
+	border-left-color: #ffffff;
+	border-bottom-color: #ffffff;
+	border-left-width: 1px;
+	border-right-width: 1px;
+	border-top-width: 1px;
+	border-bottom-width: 1px;
+
+	border-style: solid;
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
+                                      stop: 0 #dadbde, stop:  1 rgb(68, 162, 21));
+	padding-bottom: 2px;
+	 color: #FFFFFF;
+}
+QPushButton:pressed{
+	border-style: solid;
+	
+	border-top-color: #ffffff;
+	border-right-color: #ffffff;
+	border-left-color: #ffffff;
+	border-bottom-color: #ffffff;
+	border-left-width: 3px;
+	border-right-width: 3px;
+	border-top-width: 3px;
+	border-bottom-width: 3px;
+	border-style: solid;
+	 color: #FFFFFF;
+	padding-bottom: 1px;
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
+                                      stop: 0 #dadbde, stop:  1 rgb(68, 162, 21));}
 QToolButton {
 	border-style: solid;
 	border-top-color: transparent;
@@ -95,30 +131,7 @@ QToolButton:hover{
 	padding-bottom: 1px;
 	background-color: #1e1d23;
 }
-QPushButton:hover{
-	border-style: solid;
-	border-top-color: transparent;
-	border-right-color: transparent;
-	border-left-color: transparent;
-	border-bottom-color: #37efba;
-	border-bottom-width: 1px;
-	border-style: solid;
-	color: #FFFFFF;
-	padding-bottom: 2px;
-	background-color: #1e1d23;
-}
-QPushButton:pressed{
-	border-style: solid;
-	border-top-color: transparent;
-	border-right-color: transparent;
-	border-left-color: transparent;
-	border-bottom-color: #37efba;
-	border-bottom-width: 2px;
-	border-style: solid;
-	color: #37efba;
-	padding-bottom: 1px;
-	background-color: #1e1d23;
-}
+n
 QPushButton:disabled{
 	border-style: solid;
 	border-top-color: transparent;
@@ -569,14 +582,16 @@ border-radius: 20%;
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">border: 1px solid; 
-border-radius:70%; 
-color: #99615f;
-background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
-                                      stop: 0 #dadbde, stop:  1 rgb(80, 195, 26));</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Engaged</string>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -629,7 +644,7 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="iconSize">
        <size>
@@ -670,16 +685,16 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
          <number>6</number>
         </property>
         <item row="0" column="4">
-         <widget class="PlotWidget" name="summaryvoltagebargraph"/>
+         <widget class="VBarPlot" name="summaryvoltagebargraph"/>
         </item>
         <item row="0" column="2">
-         <widget class="PlotWidget" name="summaryvoltagelinegraph"/>
+         <widget class="VLinePlot" name="summaryvoltagelinegraph"/>
         </item>
         <item row="1" column="2">
-         <widget class="PlotWidget" name="summarytemplinegraph"/>
+         <widget class="TLinePlot" name="summarytemplinegraph"/>
         </item>
         <item row="1" column="4">
-         <widget class="PlotWidget" name="summarytempbargraph"/>
+         <widget class="TBarPlot" name="summarytempbargraph"/>
         </item>
        </layout>
       </widget>
@@ -689,7 +704,7 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
-         <widget class="PlotWidget" name="voltagegraph"/>
+         <widget class="VLinePlot" name="voltagegraph"/>
         </item>
        </layout>
       </widget>
@@ -699,7 +714,7 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <widget class="PlotWidget" name="tempgraph"/>
+         <widget class="TLinePlot" name="tempgraph"/>
         </item>
        </layout>
       </widget>
@@ -709,7 +724,7 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
-         <widget class="PlotWidget" name="currentgraph"/>
+         <widget class="CLinePlot" name="currentgraph"/>
         </item>
        </layout>
       </widget>
@@ -720,9 +735,29 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PlotWidget</class>
+   <class>VLinePlot</class>
    <extends>QGraphicsView</extends>
-   <header>pyqtgraph</header>
+   <header>plot</header>
+  </customwidget>
+  <customwidget>
+   <class>VBarPlot</class>
+   <extends>QGraphicsView</extends>
+   <header>plot</header>
+  </customwidget>
+  <customwidget>
+   <class>TLinePlot</class>
+   <extends>QGraphicsView</extends>
+   <header>plot</header>
+  </customwidget>
+  <customwidget>
+   <class>TBarPlot</class>
+   <extends>QGraphicsView</extends>
+   <header>plot</header>
+  </customwidget>
+  <customwidget>
+   <class>CLinePlot</class>
+   <extends>QGraphicsView</extends>
+   <header>plot</header>
   </customwidget>
  </customwidgets>
  <resources/>
