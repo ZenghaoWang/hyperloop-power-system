@@ -5,7 +5,7 @@ import serial
 from typing import Optional
 import can
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QProgressBar, QFrame
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QProgressBar, QFrame, QPushButton, QCheckBox
 from interface import Ui_MainWindow
 from PyQt5.QtCore import Qt, QTimer
 from plot import *
@@ -36,7 +36,11 @@ def bytes_to_float(b: bytearray) -> float:
     print(f"Error converting bytes {b} to float: {e}")
     return -1
 
+def generate_timestamp() -> str:
+  return time.strftime("%Y%m%d%H%M%S", time.localtime())
+
 class MainWindow(QMainWindow, Ui_MainWindow):
+
   summaryvoltagelinegraph: VLinePlot
   summaryvoltagebargraph: VBarPlot
   summarytemplinegraph: TLinePlot
@@ -51,13 +55,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
   def __init__(self) -> None:
     super(MainWindow, self).__init__()
     self.setupUi(self)
-    # Make the sure summary tab is showing
+    
+    # Set file handles to none
+    self.voltage_file = None
+    self.temp_file = None
+    self.current_file = None
+
+    # Make sure the summary tab is showing
     self.tabs.setCurrentIndex(0)
 
     # Checkbox toggles 288V/HV battery when clicked
     self.hvcheckbox.clicked.connect(self.toggle_288V)
 
+    # Power Button toggles system on/off
     self.hvsystembutton.clicked.connect(self.toggle_system) 
+
+    # Record Button toggles recording on/off
+    self.temprecordbutton.clicked.connect(self.toggle_recording_temp)
+    self.voltagerecordbutton.clicked.connect(self.toggle_recording_voltage)
+    self.currentrecordbutton.clicked.connect(self.toggle_recording_current)
 
     self.showMaximized()
   
@@ -76,7 +92,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
       self.summaryvoltagelinegraph.disable_288V()
       self.summaryvoltagebargraph.disable_288V()
       self.voltagegraph.disable_288V()
-      
+
+  def toggle_recording_voltage(self):
+    button = self.voltagerecordbutton 
+    # Start recording
+    if button.isChecked():
+      button.setText("Stop")
+      # TODO: stylesheet
+			# TODO: sqlite
+      self.voltage_file = open(f"voltage_{generate_timestamp()}.txt", 'w')
+    else:
+      button.setText("Record")
+      #_TODO: stylesheet
+      if self.voltage_file:
+        self.voltage_file.close()
+        self.voltage_file = None
+  
+  def toggle_recording_temp(self):
+    pass
+  def toggle_recording_current(self):
+    pass
 
 
 
