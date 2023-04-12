@@ -54,8 +54,7 @@ class MainWindow(QMainWindow):
     for widget in self.ui.centralwidget.findChildren(QProgressBar):
       widget.setTextVisible(True)
 
-  # Overrides a QT method which runs when the application window is closed.
-  # Runs cleanup and closes any connections that need to be closed.
+  # Overrides a QT method which runs when the application window is closed.  # Runs cleanup and closes any connections that need to be closed.
   def closeEvent(self, event) -> None:
     print("Closing application")
     self.arduino_serial.close()

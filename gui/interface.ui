@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1104</width>
-    <height>884</height>
+    <height>847</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -457,7 +457,6 @@ QSlider::sub-page:vertical {
         <property name="styleSheet">
          <string notr="true">color: #99615f;
 background-color:  rgb(121, 195, 119);
-border-radius: 20%;
 </string>
         </property>
         <property name="text">
@@ -644,7 +643,7 @@ border-radius: 20%;
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="iconSize">
        <size>
@@ -746,7 +745,7 @@ border-radius: 20%;
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true"/>
+             <string notr="true">color: #99615f; background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #dadbde, stop:  1 rgb(80, 195, 26));</string>
             </property>
             <property name="text">
              <string>Record</string>
