@@ -86,6 +86,8 @@ def generate_timestamp() -> str:
   return time.strftime("%Y%m%d%H%M%S", time.localtime())
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+  # The interval in msecs between each update 
+  REFRESH_INTERVAL = 1000 // 100 # 1000 ms/s / 100 s = 10 ms
   def __init__(self) -> None:
     super(MainWindow, self).__init__()
     self.setupUi(self)
@@ -212,6 +214,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
       self.write_to_arduino("D")
     else: 
       self.write_to_arduino("d")
+  
+  def timer_loop(self):
+    # TODO
+    self.summaryvoltagebargraph.set_bar_data(0, random.randint(1, 10))
+    pass
 
   def toggle_system(self) -> None: 
     # TODO
