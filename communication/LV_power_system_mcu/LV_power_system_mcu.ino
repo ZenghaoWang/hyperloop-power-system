@@ -45,6 +45,8 @@
 #define BUCK_B_VOLTAGE_ANALOG_INPUT_PORT A3
 #define BUCK_C_VOLTAGE_ANALOG_INPUT_PORT A4
 #define BUCK_D_VOLTAGE_ANALOG_INPUT_PORT A5
+// The analog input port used to read the voltage of the LV Battery
+#define LOW_VOLTAGE_BATTERY_ANALOG_INPUT_PORT A6
 // The I2C address of the slave Arduino monitoring the battery module.
 #define BATTERY_MODULE_MCU_I2C_ADDR 0
 // Multiplier used when converting a voltage divded signal to the original Vin.
@@ -242,7 +244,7 @@ void loop() {
     send_data_over_can_bus(&battery_module_temp, sizeof(float), 0x100, 0);
 
     // Get the LV Battery Voltage
-    float LV_battery_voltage = VOLTAGE_DIV_MULT(100, 10) * convert_sensor_value_to_voltage(analogRead(VOLTAGE_ANALOG_INPUT_PORT));
+    float LV_battery_voltage = VOLTAGE_DIV_MULT(100, 10) * convert_sensor_value_to_voltage(analogRead(LOW_VOLTAGE_BATTERY_ANALOG_INPUT_PORT));
     send_data_over_can_bus(&LV_battery_voltage, sizeof(float), 0x101, 4);
 
     // Get the LV Battery Current.
