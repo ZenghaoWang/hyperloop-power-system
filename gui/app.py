@@ -444,18 +444,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hvsystembutton.setEnabled(True)
         self.hvsystembutton.setStyleSheet(POWER_BUTTON_ON_STYLESHEET)
         self.hvsystembutton.setText("Engaged")
+        self.summaryvoltagebargraph.rail_expected_v = 48
       case status.DEBUG:
         self.statuslabel.setStyleSheet(STATUS_DEBUG_STYLESHEET)
         self.statuslabel.setText("Status: DEBUG")
         self.hvsystembutton.setEnabled(True)
         self.hvsystembutton.setStyleSheet(POWER_BUTTON_OFF_STYLESHEET)
         self.hvsystembutton.setText("Disengaged")
+        self.summaryvoltagebargraph.rail_expected_v = 36
       case status.OFF:
         self.statuslabel.setStyleSheet(STATUS_OFF_STYLESHEET)
         self.statuslabel.setText("Status: OFF")
         self.hvsystembutton.setEnabled(False)
         self.hvsystembutton.setStyleSheet(POWER_BUTTON_DISABLED_STYLESHEET)
         self.hvsystembutton.setText("Disengaged")
+        self.summaryvoltagebargraph.rail_expected_v = 0
 
 
 

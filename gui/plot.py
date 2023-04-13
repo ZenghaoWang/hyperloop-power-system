@@ -64,7 +64,6 @@ class VPlot(Plot):
   U2_EXPECTED_V = 12
   U3_EXPECTED_V = 5
   U4_EXPECTED_V = 12
-  RAIL_EXPECTED_V = 36
   HV_EXPECTED_V = 288
   # Expected LV voltage should be between 12 and 29
   LV_EXPECTED_V_LOW = 12
@@ -74,6 +73,7 @@ class VPlot(Plot):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    self.rail_expected_v = 0
   
   def enable_288V(self) -> None:
       pass
@@ -187,11 +187,11 @@ class VBarPlot(VPlot, BarPlot):
           self.set_bar_color(i, self.rgb_green)
         else:
           self.set_bar_color(i, self.rgb_red)
-      # case self.rail_i:
-      #   if self.within_tolerance(VPlot.RAIL_EXPECTED_V, new_y):
-      #     self.set_bar_color(i, self.rgb_green)
-      #   else:
-      #     self.set_bar_color(i, self.rgb_red)
+      case self.rail_i:
+        if self.within_tolerance(self.rail_expected_v, new_y):
+          self.set_bar_color(i, self.rgb_green)
+        else:
+          self.set_bar_color(i, self.rgb_red)
       case self.lvbattery_i:
         if new_y >= VPlot.LV_EXPECTED_V_LOW and new_y <= VPlot.LV_EXPECTED_V_HIGH:
           self.set_bar_color(i, self.rgb_green)
