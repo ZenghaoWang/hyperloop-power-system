@@ -26,6 +26,7 @@ class LinePlot(Plot):
 class BarPlot(Plot):
   unit = ''
   rgb_green = (121, 195, 119)
+  rgb_red = (195, 119, 122)
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.bars = None
@@ -37,6 +38,10 @@ class BarPlot(Plot):
     self.data[i] = new_y
     self.bars.setOpts(height=self.data)
     self.set_bar_label(i, self.unit)
+  
+  def set_bar_color(self, i: int, color: tuple) -> None:
+    self.colors[i] = color
+    self.bars.setOpts(brushes=self.colors)
   
   def set_bar_label(self, i: int, unit: str) -> None:
     label = pg.TextItem(text=str(self.data[i])+unit, anchor=(0.5,1), color=(0, 0, 0), border='w', fill=(255, 255, 255, 100))
@@ -63,6 +68,7 @@ class VPlot(Plot):
   # Expected LV voltage should be between 12 and 29
   LV_EXPECTED_V_LOW = 12
   LV_EXPECTED_V_HIGH = 29
+  V_TOLERANCE = 0.05
   unit='V'
 
   def __init__(self, *args, **kwargs):
@@ -73,6 +79,9 @@ class VPlot(Plot):
   
   def disable_288V(self) -> None:
     pass
+  
+  def within_tolerance(self, expected: float, actual: float) -> bool:
+    return abs(expected - actual) / expected <= VPlot.V_TOLERANCE
 
 class TPlot(Plot):
   # thresholds for temps in celsius.
@@ -94,20 +103,33 @@ class VLinePlot(VPlot, LinePlot):
     self.setYRange(0, 50, padding=0)
     self.showGrid(x=True, y=True, alpha=0.2)
     self.addLegend(colCount=2)
+    self.u1_x = [x for x in range(1, LinePlot.dataline_len)]
     self.u1_y = [random.randint(20, 28) for _ in range(1, LinePlot.dataline_len)]
-    self.u1_line = self.plot([x for x in range(1, LinePlot.dataline_len)], self.u1_y, name="U1", pen=pg.mkPen(color=(255, 0, 0)))
+    self.u1_line = self.plot(self.u1_x, self.u1_y, name="U1", pen=pg.mkPen(color=(255, 0, 0)))
+
+    self.u2_x = [x for x in range(1, LinePlot.dataline_len)]
     self.u2_y = [random.randint(8, 16) for _ in range(1, LinePlot.dataline_len)]
-    self.u2_line = self.plot([x for x in range(1, LinePlot.dataline_len)], self.u2_y, name="U2", pen=pg.mkPen(color=(255, 50, 0)))
-    self.u3_line = [random.randint(1, 9) for _ in range(1, LinePlot.dataline_len)]
-    self.u3_line = self.plot([x for x in range(1, LinePlot.dataline_len)], self.u3_line, name="U3", pen=pg.mkPen(color=(255, 100, 0)))
-    self.u4_line = [random.randint(8, 16) for _ in range(1, LinePlot.dataline_len)]
-    self.u4_line = self.plot([x for x in range(1, LinePlot.dataline_len)], self.u4_line, name="U4", pen=pg.mkPen(color=(255, 150, 0)))
+    self.u2_line = self.plot(self.u2_x, self.u2_y, name="U2", pen=pg.mkPen(color=(255, 50, 0)))
+
+    self.u3_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.u3_y = [random.randint(1, 9) for _ in range(1, LinePlot.dataline_len)]
+    self.u3_line = self.plot(self.u3_x, self.u3_y, name="U3", pen=pg.mkPen(color=(255, 100, 0)))
+
+    self.u4_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.u4_y = [random.randint(8, 16) for _ in range(1, LinePlot.dataline_len)]
+    self.u4_line = self.plot(self.u4_x, self.u4_y, name="U4", pen=pg.mkPen(color=(255, 150, 0)))
+
+    self.rail_x = [x for x in range(1, LinePlot.dataline_len)]
     self.rail_y = [random.randint(32, 40) for _ in range(1, LinePlot.dataline_len)]
-    self.rail_line = self.plot([x for x in range(1, LinePlot.dataline_len)], self.rail_y, name="Power Rail", pen=pg.mkPen(color=(0, 150, 0)))
-    self.hvbattery_y = [random.randint(284, 292) for _ in range(1, LinePlot.dataline_len)]
-    self.hvbattery_line = self.plot([x for x in range(1, LinePlot.dataline_len)], self.hvbattery_y, name="HV Battery", pen=pg.mkPen(color=(0, 255, 100)))
-    self.lvbattery_y = [random.randint(17, 29) for _ in range(1, LinePlot.dataline_len)]
-    self.lvbattery_line = self.plot([x for x in range(1, LinePlot.dataline_len)], self.lvbattery_y, name="LV Battery", pen=pg.mkPen(color=(100, 255, 0)))
+    self.rail_line = self.plot(self.rail_x, self.rail_y, name="Power Rail", pen=pg.mkPen(color=(0, 150, 0)))
+
+    self.hvb_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb_y = [random.randint(284, 292) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb_line = self.plot(self.hvb_x, self.hvb_y, name="HV Battery", pen=pg.mkPen(color=(0, 255, 100)))
+
+    self.lvb_x= [x for x in range(1, LinePlot.dataline_len)]
+    self.lvb_y = [random.randint(17, 29) for _ in range(1, LinePlot.dataline_len)]
+    self.lvb_line = self.plot(self.lvb_x, self.lvb_y, name="LV Battery", pen=pg.mkPen(color=(100, 255, 0)))
   
   def enable_288V(self) -> None:
     self.setYRange(0, 320, padding=0)
@@ -139,9 +161,49 @@ class VBarPlot(VPlot, BarPlot):
     self.getAxis('bottom').setTicks([ [(1, "U1"), (2, "U2"), (3, "U3"), (4, "U4"), (5, "RAIL"), (6, "LVB")] ])
     self.set_bar_labels()
   
+  
   def set_bar_data(self, i: int, new_y) -> None:
     super().set_bar_data(i, new_y)
     # TODO: change colors based on acceptable thresholds
+    match i:
+      case self.u1_i:
+        if self.within_tolerance(VPlot.U1_EXPECTED_V, new_y):
+          self.set_bar_color(i, self.rgb_green)
+        else:
+          self.set_bar_color(i, self.rgb_red)
+      case self.u2_i:
+        if self.within_tolerance(VPlot.U2_EXPECTED_V, new_y):
+          self.set_bar_color(i, self.rgb_green)
+        else:
+          self.set_bar_color(i, self.rgb_red)
+      case self.u3_i:
+        if self.within_tolerance(VPlot.U3_EXPECTED_V, new_y):
+          self.set_bar_color(i, self.rgb_green)
+        else:
+          self.set_bar_color(i, self.rgb_red)
+      case self.u4_i:
+        if self.within_tolerance(VPlot.U4_EXPECTED_V, new_y):
+          self.set_bar_color(i, self.rgb_green)
+        else:
+          self.set_bar_color(i, self.rgb_red)
+      case self.rail_i:
+        if self.within_tolerance(VPlot.RAIL_EXPECTED_V, new_y):
+          self.set_bar_color(i, self.rgb_green)
+        else:
+          self.set_bar_color(i, self.rgb_red)
+      case self.lvbattery_i:
+        if self.within_tolerance(VPlot.LVB_EXPECTED_V, new_y):
+          self.set_bar_color(i, self.rgb_green)
+        else:
+          self.set_bar_color(i, self.rgb_red)
+      case self.hvbattery_i:
+        if self.within_tolerance(VPlot.HVB_EXPECTED_V, new_y):
+          self.set_bar_color(i, self.rgb_green)
+        else:
+          self.set_bar_color(i, self.rgb_red)
+      case _:
+        print(f"Invalid bar index {i}")
+
   
   def enable_288V(self) -> None:
     self.setYRange(0, 320, padding=0)
@@ -175,18 +237,53 @@ class TLinePlot(LinePlot, TPlot):
     self.setYRange(20, 70, padding=0)
     self.showGrid(x=True, y=True, alpha=0.2)
     self.addLegend(colCount=3)
-    self.hvbattery1_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 1", pen=pg.mkPen(color=(255, 0, 0)))
-    self.hvbattery2_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 2", pen=pg.mkPen(color=(255, 20, 0)))
-    self.hvbattery3_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 3", pen=pg.mkPen(color=(255, 40, 0)))
-    self.hvbattery4_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 4", pen=pg.mkPen(color=(255, 60, 0)))
-    self.hvbattery5_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 5", pen=pg.mkPen(color=(255, 80, 0)))
-    self.hvbattery6_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 6", pen=pg.mkPen(color=(255, 100, 0)))
-    self.hvbattery7_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 7", pen=pg.mkPen(color=(255, 120, 0)))
-    self.hvbattery8_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 8", pen=pg.mkPen(color=(255, 140, 0)))
-    self.hvbattery9_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 9", pen=pg.mkPen(color=(255, 160, 0)))
-    self.hvbattery10_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="HV Battery 10", pen=pg.mkPen(color=(255, 180, 0)))
-    self.lvbattery_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="LV Battery", pen=pg.mkPen(color=(0, 255, 0)))
-    self.pcb_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="PCB", pen=pg.mkPen(color=(255, 255, 0)))
+    self.hvb1_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb1_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb1_line = self.plot(self.hvb1_x, self.hvb1_y, name="HV Battery 1", pen=pg.mkPen(color=(255, 0, 0)))
+
+    self.hvb2_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb2_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb2_line = self.plot(self.hvb2_x, self.hvb2_y, name="HV Battery 2", pen=pg.mkPen(color=(255, 20, 0)))
+
+    self.hvb3_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb3_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb3_line = self.plot(self.hvb3_x, self.hvb3_y, name="HV Battery 3", pen=pg.mkPen(color=(255, 40, 0)))
+
+    self.hvb4_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb4_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb4_line = self.plot(self.hvb4_x, self.hvb4_y, name="HV Battery 4", pen=pg.mkPen(color=(255, 60, 0)))
+
+    self.hvb5_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb5_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb5_line = self.plot(self.hvb5_x, self.hvb5_y, name="HV Battery 5", pen=pg.mkPen(color=(255, 80, 0)))
+
+    self.hvb6_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb6_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb6_line = self.plot(self.hvb6_x, self.hvb6_y, name="HV Battery 6", pen=pg.mkPen(color=(255, 100, 0)))
+
+    self.hvb7_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb7_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb7_line = self.plot(self.hvb7_x, self.hvb7_y, name="HV Battery 7", pen=pg.mkPen(color=(255, 120, 0)))
+
+    self.hvb8_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb8_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb8_line = self.plot(self.hvb8_x, self.hvb8_y, name="HV Battery 8", pen=pg.mkPen(color=(255, 140, 0)))
+
+    self.hvb9_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb9_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb9_line = self.plot(self.hvb9_x, self.hvb9_y, name="HV Battery 9", pen=pg.mkPen(color=(255, 160, 0)))
+
+    self.hvb10_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvb10_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.hvb10_line = self.plot(self.hvb10_x, self.hvb10_y, name="HV Battery 10", pen=pg.mkPen(color=(255, 180, 0)))
+
+    self.lvb_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.lvb_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.lvb_line = self.plot(self.lvb_x, self.lvb_y, name="LV Battery", pen=pg.mkPen(color=(0, 255, 0)))
+
+    self.pcb_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.pcb_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.pcb_line = self.plot(self.pcb_x, self.pcb_y, name="PCB", pen=pg.mkPen(color=(255, 255, 0)))
 
 class TBarPlot(BarPlot, TPlot):
   hvbattery1_i = 0
@@ -229,5 +326,9 @@ class CLinePlot(LinePlot):
     self.showGrid(x=True, y=True, alpha=0.2)
     self.addLegend(colCount=1)
 
-    self.lvcurrent_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)], name="LV Current", pen=pg.mkPen(color=(0, 255, 0)))
-    self.hvcurrent_line = self.plot([x for x in range(1, LinePlot.dataline_len)], [random.randint(60, 80) for _ in range(1, LinePlot.dataline_len)], name="HV Current", pen=pg.mkPen(color=(255, 0, 0)))
+    self.lvcurrent_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.lvcurrent_y = [random.randint(20, 40) for _ in range(1, LinePlot.dataline_len)]
+    self.lvcurrent_line = self.plot(self.lvcurrent_x, self.lvcurrent_y, name="LV Current", pen=pg.mkPen(color=(0, 255, 0)))
+    self.hvcurrent_x = [x for x in range(1, LinePlot.dataline_len)]
+    self.hvcurrent_y = [random.randint(60, 80) for _ in range(1, LinePlot.dataline_len)]
+    self.hvcurrent_line = self.plot(self.hvcurrent_x, self.hvcurrent_y, name="HV Current", pen=pg.mkPen(color=(255, 0, 0)))

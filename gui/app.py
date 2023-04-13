@@ -40,6 +40,32 @@ TABLE_C_HV = "c_hv"
 TABLE_C_LV = "c_lv"
 TABLES = [TABLE_V_U1, TABLE_V_U2, TABLE_V_U3, TABLE_V_U4, TABLE_V_RAIL, TABLE_V_HVBATTERY, TABLE_V_LVBATTERY, TABLE_T_HV1, TABLE_T_HV2, TABLE_T_HV3, TABLE_T_HV4, TABLE_T_HV5, TABLE_T_HV6, TABLE_T_HV7, TABLE_T_HV8, TABLE_T_HV9, TABLE_T_HV10, TABLE_T_LV, TABLE_T_PCB, TABLE_C_HV, TABLE_C_LV]
 
+# CAN IDs for all the sensors
+HVB1_T_ID = 0x000
+HVB2_T_ID = 0x001
+HVB3_T_ID = 0x002
+HVB4_T_ID = 0x003
+HVB5_T_ID = 0x004
+HVB6_T_ID = 0x005
+HVB7_T_ID = 0x006
+HVB8_T_ID = 0x007
+HVB9_T_ID = 0x008
+HVB10_T_ID = 0x009
+LVB_T_ID = 0x100
+LV_PCB_T_ID = 0x104
+
+HVB_V_ID = 0x014
+LVB_V_ID = 0x101
+RAIL_V_ID = 0x103
+U1_V_ID = 0x105
+U2_V_ID = 0x106
+U4_V_ID = 0x107
+U3_V_ID = 0x108
+
+HV_C_ID = 0x015
+LV_C_ID = 0x102
+
+
 STATUS_DEBUG_STYLESHEET = "background-color: rgb(255, 221, 98); color: #6284FF;"
 STATUS_ON_STYLESHEET ="color: #99615f; background-color:  rgb(121, 195, 119);"
 STATUS_OFF_STYLESHEET ="color: white; background-color:  #c3777a;"
@@ -78,6 +104,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
   def __init__(self) -> None:
     super(MainWindow, self).__init__()
     self.setupUi(self)
+
+    self.summarytemplinegraph: TLinePlot
+    self.summarytempbargraph: TBarPlot
+    self.summaryvoltagebargraph: VBarPlot
+    self.summaryvoltagelinegraph: VLinePlot
+
+    self.voltagegraph: VLinePlot
+    self.tempgraph: TLinePlot
+    self.currentgraph: CLinePlot
 
 		# Used to calculate elapsed time for line chart x values
     self.start_time: float = time.time()
@@ -208,9 +243,98 @@ class MainWindow(QMainWindow, Ui_MainWindow):
       self.write_to_arduino("d")
   
   def timer_loop(self):
-    # TODO
-    self.summaryvoltagebargraph.set_bar_data(0, random.randint(1, 10))
-    pass
+    msg: Optional[can.Message] = self.listener.get_message(0.1)
+    if not msg:
+      return
+    
+    sensor_data: float = bytes_to_float(msg.data)
+    elapsed = self.get_elapsed_seconds()
+    # TODO: sql
+    if msg.arbitration_id == HVB1_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb1_x, self.summarytemplinegraph.hvb1_y, self.summarytemplinegraph.hvb1_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb1_x, self.tempgraph.hvb1_y, self.tempgraph.hvb1_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery1_i, sensor_data)
+    elif msg.arbitration_id == HVB2_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb2_x, self.summarytemplinegraph.hvb2_y, self.summarytemplinegraph.hvb2_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb2_x, self.tempgraph.hvb2_y, self.tempgraph.hvb2_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery2_i, sensor_data)
+    elif msg.arbitration_id == HVB3_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb3_x, self.summarytemplinegraph.hvb3_y, self.summarytemplinegraph.hvb3_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb3_x, self.tempgraph.hvb3_y, self.tempgraph.hvb3_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery3_i, sensor_data)
+    elif msg.arbitration_id == HVB4_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb4_x, self.summarytemplinegraph.hvb4_y, self.summarytemplinegraph.hvb4_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb4_x, self.tempgraph.hvb4_y, self.tempgraph.hvb4_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery4_i, sensor_data) 
+    elif msg.arbitration_id == HVB5_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb5_x, self.summarytemplinegraph.hvb5_y, self.summarytemplinegraph.hvb5_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb5_x, self.tempgraph.hvb5_y, self.tempgraph.hvb5_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery5_i, sensor_data)
+    elif msg.arbitration_id == HVB6_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb6_x, self.summarytemplinegraph.hvb6_y, self.summarytemplinegraph.hvb6_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb6_x, self.tempgraph.hvb6_y, self.tempgraph.hvb6_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery6_i, sensor_data)
+    elif msg.arbitration_id == HVB7_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb7_x, self.summarytemplinegraph.hvb7_y, self.summarytemplinegraph.hvb7_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb7_x, self.tempgraph.hvb7_y, self.tempgraph.hvb7_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery7_i, sensor_data)
+    elif msg.arbitration_id == HVB8_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb8_x, self.summarytemplinegraph.hvb8_y, self.summarytemplinegraph.hvb8_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb8_x, self.tempgraph.hvb8_y, self.tempgraph.hvb8_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery8_i, sensor_data)
+    elif msg.arbitration_id == HVB9_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb9_x, self.summarytemplinegraph.hvb9_y, self.summarytemplinegraph.hvb9_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb9_x, self.tempgraph.hvb9_y, self.tempgraph.hvb9_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery9_i, sensor_data)
+    elif msg.arbitration_id == HVB10_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb10_x, self.summarytemplinegraph.hvb10_y, self.summarytemplinegraph.hvb10_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.hvb10_x, self.tempgraph.hvb10_y, self.tempgraph.hvb10_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery10_i, sensor_data)
+    elif msg.arbitration_id == LVB_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.lvb_x, self.summarytemplinegraph.lvb_y, self.summarytemplinegraph.lvb_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.lvb_x, self.tempgraph.lvb_y, self.tempgraph.lvb_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.lvbattery_i, sensor_data)
+    elif msg.arbitration_id == LV_PCB_T_ID:
+      self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.pcb_x, self.summarytemplinegraph.pcb_y, self.summarytemplinegraph.pcb_line, elapsed, sensor_data)
+      self.tempgraph.advance_dataline(self.tempgraph.pcb_x, self.tempgraph.pcb_y, self.tempgraph.pcb_line, elapsed, sensor_data)
+      self.summarytempbargraph.set_bar_data(self.summarytempbargraph.pcb_i, sensor_data)
+    elif msg.arbitration_id == HVB_V_ID:
+      self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.hvb_x, self.summaryvoltagelinegraph.hvb_y, self.summaryvoltagelinegraph.hvb_line, elapsed, sensor_data)
+      self.voltagegraph.advance_dataline(self.voltagegraph.hvb_x, self.voltagegraph.hvb_y, self.voltagegraph.hvb_line, elapsed, sensor_data)
+      self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.hvbattery_i, sensor_data)
+    elif msg.arbitration_id == LVB_V_ID:
+      self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.lvb_x, self.summaryvoltagelinegraph.lvb_y, self.summaryvoltagelinegraph.lvb_line, elapsed, sensor_data)
+      self.voltagegraph.advance_dataline(self.voltagegraph.lvb_x, self.voltagegraph.lvb_y, self.voltagegraph.lvb_line, elapsed, sensor_data)
+      self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.lvbattery_i, sensor_data)
+    elif msg.arbitration_id == RAIL_V_ID:
+      self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.rail_x, self.summaryvoltagelinegraph.rail_y, self.summaryvoltagelinegraph.rail_line, elapsed, sensor_data)
+      self.voltagegraph.advance_dataline(self.voltagegraph.rail_x, self.voltagegraph.rail_y, self.voltagegraph.rail_line, elapsed, sensor_data)
+      self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.rail_i, sensor_data)
+    elif msg.arbitration_id == U1_V_ID:
+      self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.u1_x, self.summaryvoltagelinegraph.u1_y, self.summaryvoltagelinegraph.u1_line, elapsed, sensor_data)
+      self.voltagegraph.advance_dataline(self.voltagegraph.u1_x, self.voltagegraph.u1_y, self.voltagegraph.u1_line, elapsed, sensor_data)
+      self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.u1_i, sensor_data)
+    elif msg.arbitration_id == U2_V_ID:
+      self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.u2_x, self.summaryvoltagelinegraph.u2_y, self.summaryvoltagelinegraph.u2_line, elapsed, sensor_data)
+      self.voltagegraph.advance_dataline(self.voltagegraph.u2_x, self.voltagegraph.u2_y, self.voltagegraph.u2_line, elapsed, sensor_data)
+      self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.u2_i, sensor_data)
+    elif msg.arbitration_id == U3_V_ID:
+      self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.u3_x, self.summaryvoltagelinegraph.u3_y, self.summaryvoltagelinegraph.u3_line, elapsed, sensor_data)
+      self.voltagegraph.advance_dataline(self.voltagegraph.u3_x, self.voltagegraph.u3_y, self.voltagegraph.u3_line, elapsed, sensor_data)
+      self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.u3_i, sensor_data)
+    elif msg.arbitration_id == U4_V_ID:
+      self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.u4_x, self.summaryvoltagelinegraph.u4_y, self.summaryvoltagelinegraph.u4_line, elapsed, sensor_data)
+      self.voltagegraph.advance_dataline(self.voltagegraph.u4_x, self.voltagegraph.u4_y, self.voltagegraph.u4_line, elapsed, sensor_data)
+      self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.u4_i, sensor_data)
+    elif msg.arbitration_id == HV_C_ID:
+      self.currentgraph.advance_dataline(self.currentgraph.hvcurrent_x, self.currentgraph.hvcurrent_y, self.currentgraph.hvcurrent_line, elapsed, sensor_data)
+    elif msg.arbitration_id == LV_C_ID:
+      self.currentgraph.advance_dataline(self.currentgraph.lvcurrent_x, self.currentgraph.lvcurrent_y, self.currentgraph.lvcurrent_line, elapsed, sensor_data)
+    else:
+      print(f"Unknown CAN ID: {msg.arbitration_id}")
+
+
+
 
   def toggle_system(self) -> None: 
     # TODO
