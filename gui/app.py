@@ -78,18 +78,6 @@ POWER_BUTTON_DISABLED_STYLESHEET= "color: white; background-color: rgb(170, 170,
 CURR_PATH = Path(__file__).parent.absolute()
 RECORDINGS_PATH = CURR_PATH / "recordings"
 
-
-
-# !!!!!!!!! CONFIG OPTIIONS !!!!!!!!!
-# The serial port that the can interface is connected to. 
-CAN_INTERFACE_COM_PORT = "COM22" # Placeholder, set this on the testing computer. 
-# The serial port that the arduino due is connected to. 
-ARDUINO_COM_PORT = "COM13" # placeholder, set this on the testing computer.
-# Needs to be set the same as on the arduino, otherwise communication will be gibberish.
-BAUD_RATE = 9600 
-
-
-
 # Converts a the bytearray data from a received CAN packet into a float representing a sensor value.
 def bytes_to_float(b: bytearray) -> float:
   try:
@@ -129,6 +117,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     if not RECORDINGS_PATH.exists():
       RECORDINGS_PATH.mkdir()
     
+    parser = argparse.ArgumentParser(description="Testing Interface for the UTHT Power Distribution System.")
+    parser.add_argument('-c', '--can-port', help='The serial port that the can interface is connected to.', type=int, default=None)
+    parser.add_argument('-a', '--arduino-port', help='The serial port that the arduino due is connected to.', type=int, default=None)
+    parser.add_argument('-b', '--baud-rate', help='The baud rate for the serial connection to the arduino.', type=int, default=9600)
+    args = parser.parse_args()
+    self.can_port: Optional[int] = args.can_port
+    self.arduino_port: Optional[int] = args.arduino_port
+    self.baud_rate: int = args.baud_rate
 
 
     self.set_status(Status.OFF)
@@ -165,13 +161,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
   # Overrides a QT method which runs when the application window is closed.  # Runs cleanup and closes any connections that need to be closed.
   def closeEvent(self, event) -> None:
     print("Closing application")
-    self.arduino_serial.close()
+    self.arduino_conn.close()
     super().closeEvent(event)
 
   def init_can(self):
+    if not self.can_port:
+      print("No CAN port specified on command line, not initializing CAN interface.")
+      return
+
     try:
-      print(f"Initializing CAN interface on port {CAN_INTERFACE_COM_PORT}")
-      self.bus = can.ThreadSafeBus(interface='slcan', channel=CAN_INTERFACE_COM_PORT, bitrate=1000000)
+      print(f"Initializing CAN interface on port {self.can_port}")
+      self.bus = can.ThreadSafeBus(interface='slcan', channel=self.can_port, bitrate=1000000)
 
       self.listener = can.BufferedReader()
       self.notifier = can.Notifier(self.bus, listeners=[self.listener], timeout=0.01)
@@ -191,25 +191,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
   # Setup a serial connection to the arduino due.
   def init_arduino_serial_conn(self) -> None:
+    if not self.arduino_port:
+      print("No arduino port specified on command line, not initializing arduino serial connection.")
+      return
+
     try:
-      print(f"Initializing arduino serial connection on port {ARDUINO_COM_PORT}")
-      self.arduino_serial = serial.Serial()
-      self.arduino_serial.baudrate = BAUD_RATE
-      self.arduino_serial.port = ARDUINO_COM_PORT
-      self.arduino_serial.timeout = 1
+      print(f"Initializing arduino serial connection on port {self.arduino_port}")
+      self.arduino_conn = serial.Serial()
+      self.arduino_conn.baudrate = self.baud_rate
+      self.arduino_conn.port = self.arduino_port
+      self.arduino_conn.timeout = 1
       
       # Close the port just in case it wasn't closed properly.
-      if (self.arduino_serial.is_open):
-        self.arduino_serial.close()
-      self.arduino_serial.open()	
+      if (self.arduino_conn.is_open):
+        self.arduino_conn.close()
+      self.arduino_conn.open()	
 
       
+      # Arduino sends out stuff when it starts up
       # We don't want to read that, so we sleep 
       # hacky 
       time.sleep(0.2)
 
       print(f"Arduino serial connection initialized:", end=" ")
-      print(self.arduino_serial)
+      print(self.arduino_conn)
     except Exception as e:
       print(f"Error initializing arduino serial connection: {e}")
 
@@ -217,9 +222,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
   # Used to turn on/off the software switch and bucks.
   # Do not call this method directly, call the toggle_* methods instead.
   def write_to_arduino(self, data: str) -> None:
+    if not self.arduino_port:
+      print("No arduino port specified on command line, not writing to arduino.")
+      return
+
     print(f"Sending {data} to arduino")
-    self.arduino_serial.write(data.encode())
-    res = self.arduino_serial.read(1)
+    self.arduino_conn.write(data.encode())
+    res = self.arduino_conn.read(1)
 
     try:
       if res.decode('ASCII') == 'A':
@@ -262,7 +271,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
       self.write_to_arduino("d")
   
   def timer_loop(self):
+    if not self.can_port:
+      return
+
     msg: Optional[can.Message] = self.listener.get_message(0.1)
+    print(f"CAN message received: {msg}")
     if not msg:
       return
     
