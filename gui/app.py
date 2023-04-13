@@ -1,3 +1,4 @@
+import argparse
 from enum import Enum
 from pathlib import Path
 import sys, random
@@ -113,9 +114,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     super(MainWindow, self).__init__()
     self.setupUi(self)
 
-    if not RECORDINGS_PATH.exists():
-      RECORDINGS_PATH.mkdir()
-
     self.summarytemplinegraph: TLinePlot
     self.summarytempbargraph: TBarPlot
     self.summaryvoltagebargraph: VBarPlot
@@ -127,6 +125,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     self.statuslabel: QLabel
     self.hvsystembutton: QPushButton
+
+    if not RECORDINGS_PATH.exists():
+      RECORDINGS_PATH.mkdir()
+    
+
 
     self.set_status(Status.OFF)
 
