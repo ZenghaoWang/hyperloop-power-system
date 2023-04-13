@@ -9,7 +9,7 @@ class Plot(pg.PlotWidget):
 
 class LinePlot(Plot):
   # The maximum number of points shown on the plot at any given time
-  dataline_len = 30
+  dataline_len = 100
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
   
@@ -22,6 +22,7 @@ class LinePlot(Plot):
     ys.append(new_y)
 
     dataline.setData(xs, ys)
+    self.setXRange(xs[0], xs[-1], padding=0)
 
 class BarPlot(Plot):
   unit = ''
@@ -45,7 +46,7 @@ class BarPlot(Plot):
       self.bars.setOpts(brushes=self.colors)
   
   def set_bar_label(self, i: int, unit: str) -> None:
-    label = pg.TextItem(text=str(self.data[i])+unit, anchor=(0.5,1), color=(0, 0, 0), border='w', fill=(255, 255, 255, 100))
+    label = pg.TextItem(text="{:.2f}".format(self.data[i]) + unit, anchor=(0.5,1), color=(0, 0, 0), border='w', fill=(255, 255, 255, 100))
     if (len(self.labels) > i):
       self.removeItem(self.labels[i])
       self.labels[i] = label
@@ -235,7 +236,7 @@ class TLinePlot(LinePlot, TPlot):
     self.setLabel("bottom", "Time", units="s", **{'font-size': '16pt', 'color': 'grey', 'font-weight': 'bold'})
     self.setLabel("left", "Temperature", units="°C", **{'font-size': '16pt', 'color': 'grey', 'font-weight': 'bold'})
     self.setTitle("Temperature sensors over time", **{'size': '18pt'})
-    self.setYRange(20, 70, padding=0)
+    self.setYRange(0, 70, padding=0)
     self.showGrid(x=True, y=True, alpha=0.2)
     self.addLegend(colCount=3)
     self.hvb1_x = []
@@ -304,7 +305,7 @@ class TBarPlot(BarPlot, TPlot):
     self.setLabel("bottom", "Temperature Sensors", **{'font-size': '16pt', 'color': 'grey', 'font-weight': 'bold'})
     self.setLabel("left", "Temperature", units="°C", **{'font-size': '16pt', 'color': 'grey', 'font-weight': 'bold'})
     self.setTitle("Temperature Sensors", **{'size': '18pt'})
-    self.setYRange(20, 70, padding=0)
+    self.setYRange(0, 70, padding=0)
     self.showGrid(x=True, y=True, alpha=0.2)
     # self.data = [random.randint(30, 50) for _ in range(1, 13)]
     self.data = [0 for _ in range(1, 13)]

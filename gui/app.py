@@ -9,7 +9,7 @@ import serial
 from typing import Optional
 import can
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QProgressBar, QFrame, QPushButton, QCheckBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QWidget, QProgressBar, QFrame, QPushButton, QCheckBox 
 from interface import Ui_MainWindow
 from PyQt5.QtCore import Qt, QTimer
 from plot import *
@@ -77,6 +77,7 @@ POWER_BUTTON_DISABLED_STYLESHEET= "color: white; background-color: rgb(170, 170,
 
 CURR_PATH = Path(__file__).parent.absolute()
 RECORDINGS_PATH = CURR_PATH / "recordings"
+ASSETS_PATH = CURR_PATH / 'assets'
 
 # Converts a the bytearray data from a received CAN packet into a float representing a sensor value.
 def bytes_to_float(b: bytearray) -> float:
@@ -145,6 +146,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # Power Button toggles system on/off
     self.hvsystembutton.clicked.connect(self.toggle_system) 
 
+    self.temprecordbutton: QPushButton
+    # self.temprecordbutton.setIcon(QIcon(ASSETS_PATH / 'pause.svg'))
+
     # Record Button toggles recording on/off
     self.temprecordbutton.clicked.connect(self.toggle_recording)
     self.voltagerecordbutton.clicked.connect(self.toggle_recording)
@@ -161,12 +165,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
   
   def parse_args(self):
     parser = argparse.ArgumentParser(description="Testing Interface for the UTHT Power Distribution System.")
-    parser.add_argument('-c', '--can-port', help='The serial port that the can interface is connected to.', type=int, default=None)
-    parser.add_argument('-a', '--arduino-port', help='The serial port that the arduino due is connected to.', type=int, default=None)
+    parser.add_argument('-c', '--can-port', help='The serial port that the can interface is connected to.', type=str, default=None)
+    parser.add_argument('-a', '--arduino-port', help='The serial port that the arduino due is connected to.', type=str, default=None)
     parser.add_argument('-b', '--baud-rate', help='The baud rate for the serial connection to the arduino.', type=int, default=9600)
     args = parser.parse_args()
-    self.can_port: Optional[int] = args.can_port
-    self.arduino_port: Optional[int] = args.arduino_port
+    self.can_port: Optional[str] = args.can_port
+    self.arduino_port: Optional[str] = args.arduino_port
     self.baud_rate: int = args.baud_rate
 
   def init_can(self):
