@@ -114,23 +114,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     self.statuslabel: QLabel
     self.hvsystembutton: QPushButton
 
+    self.start_time: float = time.time()
+
     if not RECORDINGS_PATH.exists():
       RECORDINGS_PATH.mkdir()
     
-    parser = argparse.ArgumentParser(description="Testing Interface for the UTHT Power Distribution System.")
-    parser.add_argument('-c', '--can-port', help='The serial port that the can interface is connected to.', type=int, default=None)
-    parser.add_argument('-a', '--arduino-port', help='The serial port that the arduino due is connected to.', type=int, default=None)
-    parser.add_argument('-b', '--baud-rate', help='The baud rate for the serial connection to the arduino.', type=int, default=9600)
-    args = parser.parse_args()
-    self.can_port: Optional[int] = args.can_port
-    self.arduino_port: Optional[int] = args.arduino_port
-    self.baud_rate: int = args.baud_rate
+    self.parse_args()
 
 
     self.set_status(Status.OFF)
 
 		# Used to calculate elapsed time for line chart x values
-    self.start_time: float = time.time()
 
   # Connection to current sqlite database file. A new file is created when recording is started.
     self.db_conn: Optional[sqlite3.Connection] = None
@@ -163,6 +157,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     print("Closing application")
     self.arduino_conn.close()
     super().closeEvent(event)
+  
+  def parse_args(self):
+    parser = argparse.ArgumentParser(description="Testing Interface for the UTHT Power Distribution System.")
+    parser.add_argument('-c', '--can-port', help='The serial port that the can interface is connected to.', type=int, default=None)
+    parser.add_argument('-a', '--arduino-port', help='The serial port that the arduino due is connected to.', type=int, default=None)
+    parser.add_argument('-b', '--baud-rate', help='The baud rate for the serial connection to the arduino.', type=int, default=9600)
+    args = parser.parse_args()
+    self.can_port: Optional[int] = args.can_port
+    self.arduino_port: Optional[int] = args.arduino_port
+    self.baud_rate: int = args.baud_rate
 
   def init_can(self):
     if not self.can_port:
