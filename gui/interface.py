@@ -502,7 +502,7 @@ class Ui_MainWindow(object):
         font.setBold(False)
         font.setWeight(50)
         self.hvsystembutton.setFont(font)
-        self.hvsystembutton.setStyleSheet("color: white; background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #dadbde, stop:  1 #de1641);\n"
+        self.hvsystembutton.setStyleSheet("color: white; background-color: rgb(170, 170, 127);\n"
 "")
         self.hvsystembutton.setCheckable(True)
         self.hvsystembutton.setChecked(False)
@@ -656,7 +656,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(3)
+        self.tabs.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

@@ -164,7 +164,6 @@ class VBarPlot(VPlot, BarPlot):
   
   def set_bar_data(self, i: int, new_y) -> None:
     super().set_bar_data(i, new_y)
-    # TODO: change colors based on acceptable thresholds
     match i:
       case self.u1_i:
         if self.within_tolerance(VPlot.U1_EXPECTED_V, new_y):
@@ -314,7 +313,12 @@ class TBarPlot(BarPlot, TPlot):
   
   def set_bar_data(self, i: int, new_y) -> None:
     super().set_bar_data(i, new_y)
-    # TODO: change colors based on acceptable thresholds
+    if new_y >= self.TEMP_THRESHOLD_WARNING:
+      print(f"Battery temp is above {self.TEMP_THRESHOLD_WARNING}°c.") 
+      self.set_bar_color(i, self.rgb_red)
+    else:
+      self.set_bar_color(i, self.rgb_green)
+
 
 class CLinePlot(LinePlot):
   def __init__(self, *args, **kwargs):

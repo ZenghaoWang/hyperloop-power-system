@@ -579,7 +579,7 @@ QSlider::sub-page:vertical {
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: white; background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #dadbde, stop:  1 #de1641);
+            <string notr="true">color: white; background-color: rgb(170, 170, 127);
 </string>
            </property>
            <property name="text">
@@ -642,7 +642,7 @@ QSlider::sub-page:vertical {
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>2</number>
       </property>
       <property name="iconSize">
        <size>
