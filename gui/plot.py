@@ -30,7 +30,7 @@ class BarPlot(Plot):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.bars = None
-    self.data = []
+    self.data: list
     self.labels: List[pg.TextItem] = []
     self.colors = []
   
@@ -40,8 +40,9 @@ class BarPlot(Plot):
     self.set_bar_label(i, self.unit)
   
   def set_bar_color(self, i: int, color: tuple) -> None:
-    self.colors[i] = color
-    self.bars.setOpts(brushes=self.colors)
+    if i < len(self.colors):
+      self.colors[i] = color
+      self.bars.setOpts(brushes=self.colors)
   
   def set_bar_label(self, i: int, unit: str) -> None:
     label = pg.TextItem(text=str(self.data[i])+unit, anchor=(0.5,1), color=(0, 0, 0), border='w', fill=(255, 255, 255, 100))
@@ -154,7 +155,8 @@ class VBarPlot(VPlot, BarPlot):
     self.setTitle("Voltage sensors", **{'size': '18pt'})
     self.setYRange(0, 50, padding=0)
     self.showGrid(x=True, y=True, alpha=0.2)
-    self.data = [24, 12, 5, 12, 36, 25]
+    # self.data = [24, 12, 5, 12, 36, 25]
+    self.data = [0 for _ in range(7)]
     self.colors = [self.rgb_green for _ in range(len(self.data))]
     self.bars: pg.BarGraphItem = pg.BarGraphItem(x=[x for x in range(1, len(self.data) + 1)], height=self.data, width=0.5, brushes=self.colors)
     self.addItem(self.bars)
@@ -185,18 +187,18 @@ class VBarPlot(VPlot, BarPlot):
           self.set_bar_color(i, self.rgb_green)
         else:
           self.set_bar_color(i, self.rgb_red)
-      case self.rail_i:
-        if self.within_tolerance(VPlot.RAIL_EXPECTED_V, new_y):
-          self.set_bar_color(i, self.rgb_green)
-        else:
-          self.set_bar_color(i, self.rgb_red)
+      # case self.rail_i:
+      #   if self.within_tolerance(VPlot.RAIL_EXPECTED_V, new_y):
+      #     self.set_bar_color(i, self.rgb_green)
+      #   else:
+      #     self.set_bar_color(i, self.rgb_red)
       case self.lvbattery_i:
-        if self.within_tolerance(VPlot.LVB_EXPECTED_V, new_y):
+        if new_y >= VPlot.LV_EXPECTED_V_LOW and new_y <= VPlot.LV_EXPECTED_V_HIGH:
           self.set_bar_color(i, self.rgb_green)
         else:
           self.set_bar_color(i, self.rgb_red)
       case self.hvbattery_i:
-        if self.within_tolerance(VPlot.HVB_EXPECTED_V, new_y):
+        if self.within_tolerance(VPlot.HV_EXPECTED_V, new_y):
           self.set_bar_color(i, self.rgb_green)
         else:
           self.set_bar_color(i, self.rgb_red)
@@ -304,7 +306,8 @@ class TBarPlot(BarPlot, TPlot):
     self.setTitle("Temperature Sensors", **{'size': '18pt'})
     self.setYRange(20, 70, padding=0)
     self.showGrid(x=True, y=True, alpha=0.2)
-    self.data = [random.randint(30, 50) for _ in range(1, 13)]
+    # self.data = [random.randint(30, 50) for _ in range(1, 13)]
+    self.data = [0 for _ in range(1, 13)]
     self.colors = [(121, 195, 119) for _ in range(len(self.data))]
     self.bars :pg.BarGraphItem = pg.BarGraphItem(x=[x for x in range(1, len(self.data) + 1)], height=self.data, width=0.5, brushes=self.colors)
     self.addItem(self.bars)
