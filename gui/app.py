@@ -1,3 +1,4 @@
+from enum import Enum
 from pathlib import Path
 import sys, random
 import sqlite3
@@ -95,8 +96,14 @@ def bytes_to_float(b: bytearray) -> float:
     print(f"Error converting bytes {b} to float: {e}")
     return -1
 
-def generate_timestamp() -> str:
+def generate_db_timestamp() -> str:
   return time.strftime("%Y%m%d%H%M%S", time.localtime())
+
+class Status(Enum):
+  OFF = 0
+  ON = 1
+  DEBUG = 2
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
   # The interval in msecs between each update 
@@ -104,6 +111,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
   def __init__(self) -> None:
     super(MainWindow, self).__init__()
     self.setupUi(self)
+
+    if not RECORDINGS_PATH.exists():
+      RECORDINGS_PATH.mkdir()
 
     self.summarytemplinegraph: TLinePlot
     self.summarytempbargraph: TBarPlot
@@ -113,6 +123,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     self.voltagegraph: VLinePlot
     self.tempgraph: TLinePlot
     self.currentgraph: CLinePlot
+
+    self.statuslabel: QLabel
+    self.hvsystembutton: QPushButton
+
+    self.set_status(Status.OFF)
 
 		# Used to calculate elapsed time for line chart x values
     self.start_time: float = time.time()
@@ -167,8 +182,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     self.timer.timeout.connect(self.timer_loop)
     self.timer.start()
   
-  def get_elapsed_seconds(self) -> float:
-    return time.time() - self.start_time
+  def get_elapsed_seconds(self, time: float) -> float:
+    return time - self.start_time
 
   # Setup a serial connection to the arduino due.
   def init_arduino_serial_conn(self) -> None:
@@ -247,89 +262,118 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     if not msg:
       return
     
+    timestamp = time.time()
+    elapsed = self.get_elapsed_seconds(timestamp)
     sensor_data: float = bytes_to_float(msg.data)
-    elapsed = self.get_elapsed_seconds()
     # TODO: sql
     if msg.arbitration_id == HVB1_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb1_x, self.summarytemplinegraph.hvb1_y, self.summarytemplinegraph.hvb1_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb1_x, self.tempgraph.hvb1_y, self.tempgraph.hvb1_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery1_i, sensor_data)
+      self.insert_data_sql(TABLE_T_HV1, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB2_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb2_x, self.summarytemplinegraph.hvb2_y, self.summarytemplinegraph.hvb2_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb2_x, self.tempgraph.hvb2_y, self.tempgraph.hvb2_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery2_i, sensor_data)
+      self.insert_data_sql(TABLE_T_HV2, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB3_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb3_x, self.summarytemplinegraph.hvb3_y, self.summarytemplinegraph.hvb3_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb3_x, self.tempgraph.hvb3_y, self.tempgraph.hvb3_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery3_i, sensor_data)
+      self.insert_data_sql(TABLE_T_HV3, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB4_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb4_x, self.summarytemplinegraph.hvb4_y, self.summarytemplinegraph.hvb4_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb4_x, self.tempgraph.hvb4_y, self.tempgraph.hvb4_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery4_i, sensor_data) 
+      self.insert_data_sql(TABLE_T_HV4, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB5_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb5_x, self.summarytemplinegraph.hvb5_y, self.summarytemplinegraph.hvb5_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb5_x, self.tempgraph.hvb5_y, self.tempgraph.hvb5_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery5_i, sensor_data)
+      self.insert_data_sql(TABLE_T_HV5, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB6_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb6_x, self.summarytemplinegraph.hvb6_y, self.summarytemplinegraph.hvb6_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb6_x, self.tempgraph.hvb6_y, self.tempgraph.hvb6_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery6_i, sensor_data)
+      self.insert_data_sql(TABLE_T_HV6, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB7_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb7_x, self.summarytemplinegraph.hvb7_y, self.summarytemplinegraph.hvb7_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb7_x, self.tempgraph.hvb7_y, self.tempgraph.hvb7_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery7_i, sensor_data)
+      self.insert_data_sql(TABLE_T_HV7, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB8_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb8_x, self.summarytemplinegraph.hvb8_y, self.summarytemplinegraph.hvb8_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb8_x, self.tempgraph.hvb8_y, self.tempgraph.hvb8_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery8_i, sensor_data)
+      self.insert_data_sql(TABLE_T_HV8, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB9_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb9_x, self.summarytemplinegraph.hvb9_y, self.summarytemplinegraph.hvb9_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb9_x, self.tempgraph.hvb9_y, self.tempgraph.hvb9_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery9_i, sensor_data)
+      self.insert_data_sql(TABLE_T_HV9, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB10_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.hvb10_x, self.summarytemplinegraph.hvb10_y, self.summarytemplinegraph.hvb10_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.hvb10_x, self.tempgraph.hvb10_y, self.tempgraph.hvb10_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.hvbattery10_i, sensor_data)
+      self.insert_data_sql(TABLE_T_HV10, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == LVB_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.lvb_x, self.summarytemplinegraph.lvb_y, self.summarytemplinegraph.lvb_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.lvb_x, self.tempgraph.lvb_y, self.tempgraph.lvb_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.lvbattery_i, sensor_data)
+      self.insert_data_sql(TABLE_T_LV, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == LV_PCB_T_ID:
       self.summarytemplinegraph.advance_dataline(self.summarytemplinegraph.pcb_x, self.summarytemplinegraph.pcb_y, self.summarytemplinegraph.pcb_line, elapsed, sensor_data)
       self.tempgraph.advance_dataline(self.tempgraph.pcb_x, self.tempgraph.pcb_y, self.tempgraph.pcb_line, elapsed, sensor_data)
       self.summarytempbargraph.set_bar_data(self.summarytempbargraph.pcb_i, sensor_data)
+      self.insert_data_sql(TABLE_T_PCB, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HVB_V_ID:
       self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.hvb_x, self.summaryvoltagelinegraph.hvb_y, self.summaryvoltagelinegraph.hvb_line, elapsed, sensor_data)
       self.voltagegraph.advance_dataline(self.voltagegraph.hvb_x, self.voltagegraph.hvb_y, self.voltagegraph.hvb_line, elapsed, sensor_data)
       self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.hvbattery_i, sensor_data)
+      self.insert_data_sql(TABLE_V_HVBATTERY, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == LVB_V_ID:
       self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.lvb_x, self.summaryvoltagelinegraph.lvb_y, self.summaryvoltagelinegraph.lvb_line, elapsed, sensor_data)
       self.voltagegraph.advance_dataline(self.voltagegraph.lvb_x, self.voltagegraph.lvb_y, self.voltagegraph.lvb_line, elapsed, sensor_data)
       self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.lvbattery_i, sensor_data)
+      self.insert_data_sql(TABLE_V_LVBATTERY, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == RAIL_V_ID:
       self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.rail_x, self.summaryvoltagelinegraph.rail_y, self.summaryvoltagelinegraph.rail_line, elapsed, sensor_data)
       self.voltagegraph.advance_dataline(self.voltagegraph.rail_x, self.voltagegraph.rail_y, self.voltagegraph.rail_line, elapsed, sensor_data)
       self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.rail_i, sensor_data)
+      self.insert_data_sql(TABLE_V_RAIL, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == U1_V_ID:
       self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.u1_x, self.summaryvoltagelinegraph.u1_y, self.summaryvoltagelinegraph.u1_line, elapsed, sensor_data)
       self.voltagegraph.advance_dataline(self.voltagegraph.u1_x, self.voltagegraph.u1_y, self.voltagegraph.u1_line, elapsed, sensor_data)
       self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.u1_i, sensor_data)
+      self.insert_data_sql(TABLE_V_U1, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == U2_V_ID:
       self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.u2_x, self.summaryvoltagelinegraph.u2_y, self.summaryvoltagelinegraph.u2_line, elapsed, sensor_data)
       self.voltagegraph.advance_dataline(self.voltagegraph.u2_x, self.voltagegraph.u2_y, self.voltagegraph.u2_line, elapsed, sensor_data)
       self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.u2_i, sensor_data)
+      self.insert_data_sql(TABLE_V_U2, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == U3_V_ID:
       self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.u3_x, self.summaryvoltagelinegraph.u3_y, self.summaryvoltagelinegraph.u3_line, elapsed, sensor_data)
       self.voltagegraph.advance_dataline(self.voltagegraph.u3_x, self.voltagegraph.u3_y, self.voltagegraph.u3_line, elapsed, sensor_data)
       self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.u3_i, sensor_data)
+      self.insert_data_sql(TABLE_V_U3, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == U4_V_ID:
       self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.u4_x, self.summaryvoltagelinegraph.u4_y, self.summaryvoltagelinegraph.u4_line, elapsed, sensor_data)
       self.voltagegraph.advance_dataline(self.voltagegraph.u4_x, self.voltagegraph.u4_y, self.voltagegraph.u4_line, elapsed, sensor_data)
       self.summaryvoltagebargraph.set_bar_data(self.summaryvoltagebargraph.u4_i, sensor_data)
+      self.insert_data_sql(TABLE_V_U4, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == HV_C_ID:
       self.currentgraph.advance_dataline(self.currentgraph.hvcurrent_x, self.currentgraph.hvcurrent_y, self.currentgraph.hvcurrent_line, elapsed, sensor_data)
+      self.insert_data_sql(TABLE_C_HV, timestamp, elapsed, sensor_data)
     elif msg.arbitration_id == LV_C_ID:
       self.currentgraph.advance_dataline(self.currentgraph.lvcurrent_x, self.currentgraph.lvcurrent_y, self.currentgraph.lvcurrent_line, elapsed, sensor_data)
+      self.insert_data_sql(TABLE_C_LV, timestamp, elapsed, sensor_data)
+      match self.status:
+        case Status.OFF:
+          if sensor_data > 0:
+            self.set_status(Status.ON)
+        case Status.ON | Status.DEBUG:
+          if sensor_data == 0:
+            self.set_status(Status.OFF)
     else:
       print(f"Unknown CAN ID: {msg.arbitration_id}")
 
@@ -337,9 +381,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
   def toggle_system(self) -> None: 
-    # TODO
     if self.hvsystembutton.isChecked():
       print("Turning system on")
+      self.set_status(Status.ON)
       self.toggle_software_switch(enable=True)
       self.hvsystembutton.setText("Engaged")
       self.hvsystembutton.setStyleSheet(POWER_BUTTON_ON_STYLESHEET)
@@ -347,6 +391,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
       self.timer.start()
     else:
       print("Turning system off")
+      self.set_status(Status.DEBUG)
       self.toggle_software_switch(enable=False)
       self.hvsystembutton.setText("Disengaged")
       self.hvsystembutton.setStyleSheet(POWER_BUTTON_OFF_STYLESHEET)
@@ -365,14 +410,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
       self.summaryvoltagelinegraph.disable_288V()
       self.summaryvoltagebargraph.disable_288V()
       self.voltagegraph.disable_288V()
+  
+  def set_status(self, status: Status):
+    self.status = status
+    match status:
+      case status.ON:
+        self.statuslabel.setStyleSheet(STATUS_ON_STYLESHEET)
+        self.statuslabel.setText("Status: ON")
+        self.hvsystembutton.setEnabled(True)
+      case status.DEBUG:
+        self.statuslabel.setStyleSheet(STATUS_DEBUG_STYLESHEET)
+        self.statuslabel.setText("Status: DEBUG")
+        self.hvsystembutton.setEnabled(True)
+      case status.OFF:
+        self.statuslabel.setStyleSheet(STATUS_OFF_STYLESHEET)
+        self.statuslabel.setText("Status: OFF")
+        self.hvsystembutton.setEnabled(False)
+
+
+
 
   def toggle_recording(self):
     # Create a new sqlite db file and connect to it.
     if not self.db_conn:
-      self.db_conn = sqlite3.connect(RECORDINGS_PATH / f"{generate_timestamp()}.db")
+      self.db_conn = sqlite3.connect(RECORDINGS_PATH / f"{generate_db_timestamp()}.db")
       # Create tables for current, voltage, temp
       for table in TABLES:
-        self.create_table(table)
+        self.create_table_sql(table)
         
     # Close the connection to the current db file.
     else:
@@ -383,16 +447,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     for button in buttons:
       # Start recording
       if button.isChecked():
-        button.setText("Stop")
-        button.setStyleSheet(STATUS_ON_STYLESHEET)
+        button.setText("Recording")
+        button.setStyleSheet(POWER_BUTTON_ON_STYLESHEET)
       else:
-        button.setText("Record")
-        button.setStyleSheet(STATUS_OFF_STYLESHEET)
+        button.setText("Not\nRecording")
+        button.setStyleSheet(POWER_BUTTON_OFF_STYLESHEET)
 
-  def create_table(self, name: str) -> None:
+  def create_table_sql(self, name: str) -> None:
     if self.db_conn:
       cur = self.db_conn.cursor()
-      cur.execute(f"CREATE TABLE {name} (timestamp INTEGER, elapsed REAL, {name} REAL)")
+      cur.execute(f"CREATE TABLE {name} (timestamp REAL, elapsed REAL, {name} REAL)")
+  
+  def insert_data_sql(self, table: str, timestamp: float, elapsed: float, data: float) -> None:
+    if self.db_conn:
+      cur = self.db_conn.cursor()
+      cur.execute(f"INSERT INTO {table} VALUES ({timestamp}, {elapsed}, {data})")
         
   
 
