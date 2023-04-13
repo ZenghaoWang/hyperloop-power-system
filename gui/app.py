@@ -155,7 +155,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
   # Overrides a QT method which runs when the application window is closed.  # Runs cleanup and closes any connections that need to be closed.
   def closeEvent(self, event) -> None:
     print("Closing application")
-    self.arduino_conn.close()
+    if self.arduino_port:
+      self.arduino_conn.close()
     super().closeEvent(event)
   
   def parse_args(self):
