@@ -53,7 +53,18 @@ class BarPlot(Plot):
       self.set_bar_label(i, self.unit)
 
 class VPlot(Plot):
+  # Expected voltages should be within 5%
+  U1_EXPECTED_V = 24
+  U2_EXPECTED_V = 12
+  U3_EXPECTED_V = 5
+  U4_EXPECTED_V = 12
+  RAIL_EXPECTED_V = 36
+  HV_EXPECTED_V = 288
+  # Expected LV voltage should be between 12 and 29
+  LV_EXPECTED_V_LOW = 12
+  LV_EXPECTED_V_HIGH = 29
   unit='V'
+
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
   
@@ -64,6 +75,9 @@ class VPlot(Plot):
     pass
 
 class TPlot(Plot):
+  # thresholds for temps in celsius.
+  TEMP_THRESHOLD_WARNING = 50
+  TEMP_THRESHOLD_MAX = 60
   unit='c'
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)

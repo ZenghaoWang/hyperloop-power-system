@@ -16,7 +16,7 @@ import struct
 
 # names for all the sql tables
 # SQL Schema:
-# Table [NAME] (Timestamp INTEGER, [NAME] REAL)
+# Table [NAME] (Timestamp INTEGER, elapsed REAL, [NAME] REAL)
 TABLE_V_U1 = "v_u1"
 TABLE_V_U2 = "v_u2"
 TABLE_V_U3 = "v_u3"
@@ -59,20 +59,7 @@ ARDUINO_COM_PORT = "COM13" # placeholder, set this on the testing computer.
 # Needs to be set the same as on the arduino, otherwise communication will be gibberish.
 BAUD_RATE = 9600 
 
-# thresholds for battery temps in celsius.
-BATTERY_TEMP_WARNING_THRESHOLD = 50
-BATTERY_TEMP_MAX_THRESHOLD = 60
 
-# Expected voltages should be within 5%
-U1_EXPECTED_V = 24
-U2_EXPECTED_V = 12
-U3_EXPECTED_V = 5
-U4_EXPECTED_V = 12
-RAIL_EXPECTED_V = 36
-HV_EXPECTED_V = 288
-# Expected LV voltage should be between 12 and 29
-LV_EXPECTED_V_LOW = 12
-LV_EXPECTED_V_HIGH = 29
 
 # Converts a the bytearray data from a received CAN packet into a float representing a sensor value.
 def bytes_to_float(b: bytearray) -> float:
@@ -92,9 +79,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     super(MainWindow, self).__init__()
     self.setupUi(self)
 
+		# Used to calculate elapsed time for line chart x values
+    self.start_time: float = time.time()
+
   # Connection to current sqlite database file. A new file is created when recording is started.
     self.db_conn: Optional[sqlite3.Connection] = None
-    self.is_recording = False
 
     # Setup a serial connection to the arduino due to send signals.
     self.init_arduino_serial_conn()		
@@ -142,6 +131,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     self.timer.setInterval(self.REFRESH_INTERVAL)
     self.timer.timeout.connect(self.timer_loop)
     self.timer.start()
+  
+  def get_elapsed_seconds(self) -> float:
+    return time.time() - self.start_time
 
   # Setup a serial connection to the arduino due.
   def init_arduino_serial_conn(self) -> None:
@@ -252,19 +244,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
   def toggle_recording(self):
     # Create a new sqlite db file and connect to it.
-    if not self.is_recording:
+    if not self.db_conn:
       self.db_conn = sqlite3.connect(RECORDINGS_PATH / f"{generate_timestamp()}.db")
-      self.is_recording = True
       # Create tables for current, voltage, temp
-      cur = self.db_conn.cursor()
       for table in TABLES:
-        cur.execute(f"CREATE TABLE {table} (timestamp INTEGER, {table} REAL)")
+        self.create_table(table)
+        
     # Close the connection to the current db file.
     else:
-      if self.db_conn:
-        self.db_conn.close()
-        self.db_conn = None
-      self.is_recording = False
+      self.db_conn.close()
+      self.db_conn = None
 
     buttons = [self.voltagerecordbutton, self.temprecordbutton, self.currentrecordbutton]
     for button in buttons:
@@ -275,6 +264,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
       else:
         button.setText("Record")
         button.setStyleSheet(STATUS_OFF_STYLESHEET)
+
+  def create_table(self, name: str) -> None:
+    if self.db_conn:
+      cur = self.db_conn.cursor()
+      cur.execute(f"CREATE TABLE {name} (timestamp INTEGER, elapsed REAL, {name} REAL)")
         
   
 
