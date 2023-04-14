@@ -394,7 +394,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
           if sensor_data == 0:
             self.set_status(Status.OFF)
         case Status.ON:
-          if sensor_data <= 40 and sensor_data > 0:
+          if sensor_data <= 36 and sensor_data > 0:
             self.set_status(Status.DEBUG)
       self.summaryvoltagelinegraph.advance_dataline(self.summaryvoltagelinegraph.rail_x, self.summaryvoltagelinegraph.rail_y, self.summaryvoltagelinegraph.rail_line, elapsed, sensor_data)
       self.voltagegraph.advance_dataline(self.voltagegraph.rail_x, self.voltagegraph.rail_y, self.voltagegraph.rail_line, elapsed, sensor_data)

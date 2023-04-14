@@ -157,7 +157,7 @@ class VBarPlot(VPlot, BarPlot):
     self.setYRange(0, 50, padding=0)
     self.showGrid(x=True, y=True, alpha=0.2)
     # self.data = [24, 12, 5, 12, 36, 25]
-    self.data = [0 for _ in range(7)]
+    self.data = [0 for _ in range(6)]
     self.colors = [self.rgb_green for _ in range(len(self.data))]
     self.bars: pg.BarGraphItem = pg.BarGraphItem(x=[x for x in range(1, len(self.data) + 1)], height=self.data, width=0.5, brushes=self.colors)
     self.addItem(self.bars)
