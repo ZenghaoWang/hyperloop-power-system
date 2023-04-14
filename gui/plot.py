@@ -22,7 +22,6 @@ class LinePlot(Plot):
     ys.append(new_y)
 
     dataline.setData(xs, ys)
-    self.setXRange(xs[0], xs[-1], padding=0)
 
 class BarPlot(Plot):
   unit = ''
@@ -36,9 +35,10 @@ class BarPlot(Plot):
     self.colors = []
   
   def set_bar_data(self, i: int, new_y) -> None:
-    self.data[i] = new_y
-    self.bars.setOpts(height=self.data)
-    self.set_bar_label(i, self.unit)
+    if i < len(self.data):
+      self.data[i] = new_y
+      self.bars.setOpts(height=self.data)
+      self.set_bar_label(i, self.unit)
   
   def set_bar_color(self, i: int, color: tuple) -> None:
     if i < len(self.colors):
@@ -154,7 +154,7 @@ class VBarPlot(VPlot, BarPlot):
     self.setLabel("bottom", "Voltage Sensors", **{'font-size': '16pt', 'color': 'grey', 'font-weight': 'bold'})
     self.setLabel("left", "Voltage", units="V", **{'font-size': '16pt', 'color': 'grey', 'font-weight': 'bold'})
     self.setTitle("Voltage sensors", **{'size': '18pt'})
-    self.setYRange(0, 50, padding=0)
+    self.setYRange(0, 60, padding=0)
     self.showGrid(x=True, y=True, alpha=0.2)
     # self.data = [24, 12, 5, 12, 36, 25]
     self.data = [0 for _ in range(6)]
@@ -332,6 +332,7 @@ class CLinePlot(LinePlot):
     self.setTitle("Temperature sensors over time", **{'size': '18pt'})
     # self.setYRange(0, 5, padding=0)
     self.showGrid(x=True, y=True, alpha=0.2)
+    self.setXRange(0, 15, padding=0)
     self.addLegend(colCount=1)
 
     self.lvcurrent_x = []
