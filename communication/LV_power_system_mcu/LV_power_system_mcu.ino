@@ -22,13 +22,19 @@
 #include <Wire.h>
 #include <SPI.h>
 
+// Sends all spoofed data. Used to test the CANBUS when nothing is connected.
+#define SEND_FAKE_DATA false
+// Puts the MCU into DEMO mode, where only the sensors we are able have live
+// during a demo are sent and the rest are spoofed.
+#define DEMO_MODE false
+
 // The baud rate of the serial connection
 #define SERIAL_BAUD_RATE 9600
 // The prescalar for the Real Time Timer (RTT). Currently set to run at 64 Hz.
 //      f (Hz) = 0x8000 / RTT_PRESCALER
 #define RTT_PRESCALER (0x8000 >> 6)
 // The digital output port used to close the software switch.
-#define SWITCH_DIGITAL_OUTPUT_PORT 2
+#define SWITCH_DIGITAL_OUTPUT_PORT 43
 // The digital output port used to enable the different Bucks
 #define BUCK_A_EN_DIGITAL_OUTPUT_PORT 3
 #define BUCK_B_EN_DIGITAL_OUTPUT_PORT 4
@@ -241,36 +247,45 @@ void loop() {
     while (Wire.available()) {
       Wire.readBytes((char *)(&battery_module_temp), sizeof(battery_module_temp));
     }
+    if (SEND_FAKE_DATA || DEMO_MODE) battery_module_temp = 20 + .2 * (float) random(100) / 100.0;
     send_data_over_can_bus(&battery_module_temp, sizeof(float), 0x100, 0);
 
     // Get the LV Battery Voltage
     float LV_battery_voltage = VOLTAGE_DIV_MULT(100, 10) * convert_sensor_value_to_voltage(analogRead(LOW_VOLTAGE_BATTERY_ANALOG_INPUT_PORT));
+    if (SEND_FAKE_DATA) LV_battery_voltage = 27 + .27 * (float) random(100) / 100.0;
     send_data_over_can_bus(&LV_battery_voltage, sizeof(float), 0x101, 4);
 
     // Get the LV Battery Current.
     //  Magic number comes from the sensor providing a resolution of 401.5 mV per A
     float LV_current = 2.49066 * convert_sensor_value_to_voltage(analogRead(CURRENT_ANALOG_INPUT_PORT));
+    if (SEND_FAKE_DATA || DEMO_MODE) LV_current = 1 + .01 * (float) random(100) / 100.0;
     send_data_over_can_bus(&LV_current, sizeof(float), 0x102, 4);
 
     // Get the LV System Voltage.
     float LV_voltage = VOLTAGE_DIV_MULT(220, 10) * convert_sensor_value_to_voltage(analogRead(VOLTAGE_ANALOG_INPUT_PORT));
+    if (SEND_FAKE_DATA) LV_voltage = 36 + .36 * (float) random(100) / 100.0;
     send_data_over_can_bus(&LV_voltage, sizeof(float), 0x103, 4);
 
     // Get the LV PCB Temperature.
     float PCB_temp = get_thermocouple_temp_in_c();
+    if (SEND_FAKE_DATA) PCB_temp = 20 + .2 * (float) random(100) / 100.0;
     send_data_over_can_bus(&PCB_temp, sizeof(float), 0x104, 7);
 
     // Buck A: 24V
     float buck_A_voltage = VOLTAGE_DIV_MULT(100, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_A_VOLTAGE_ANALOG_INPUT_PORT));
+    if (SEND_FAKE_DATA) buck_A_voltage = 24 + .24 * (float) random(100) / 100.0;
     send_data_over_can_bus(&buck_A_voltage, sizeof(float), 0x105, 4);
     // Buck B: 12V
     float buck_B_voltage = VOLTAGE_DIV_MULT(51, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_B_VOLTAGE_ANALOG_INPUT_PORT));
+    if (SEND_FAKE_DATA) buck_B_voltage = 12 + .12 * (float) random(100) / 100.0;
     send_data_over_can_bus(&buck_B_voltage, sizeof(float), 0x106, 4);
     // Buck C: 12V
     float buck_C_voltage = VOLTAGE_DIV_MULT(51, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_C_VOLTAGE_ANALOG_INPUT_PORT));
+    if (SEND_FAKE_DATA) buck_C_voltage = 12 + .12 * (float) random(100) / 100.0;
     send_data_over_can_bus(&buck_C_voltage, sizeof(float), 0x107, 4);
     // Buck D: 5V
     float buck_D_voltage = VOLTAGE_DIV_MULT(20, 10) * convert_sensor_value_to_voltage(analogRead(BUCK_D_VOLTAGE_ANALOG_INPUT_PORT));
+    if (SEND_FAKE_DATA) buck_D_voltage = 5 + .05 * (float) random(100) / 100.0;
     send_data_over_can_bus(&buck_D_voltage, sizeof(float), 0x108, 4);
   }
 }
