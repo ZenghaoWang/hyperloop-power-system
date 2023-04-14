@@ -95,6 +95,15 @@ class Status(Enum):
   ON = 1
   DEBUG = 2
 
+
+class CANWorker(QObject):
+  data_received = pyqtSignal(object)
+  def receive_data(self):
+    if CAN_PORT:
+      msg = listener.get_message(0.1)
+      self.data_received.emit(msg)
+    
+    
 class MainWindow(QMainWindow, Ui_MainWindow):
   # The interval in msecs between each update 
   REFRESH_INTERVAL = 1000 // 100 # 1000 ms/s / 100 s = 10 ms
@@ -119,7 +128,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     if not RECORDINGS_PATH.exists():
       RECORDINGS_PATH.mkdir()
     
-    self.parse_args()
 
 
     self.set_status(Status.OFF)
@@ -158,28 +166,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
   # Overrides a QT method which runs when the application window is closed.  # Runs cleanup and closes any connections that need to be closed.
   def closeEvent(self, event) -> None:
     print("Closing application")
-    if self.arduino_port:
+    if self.arduino_conn.is_open:
       self.arduino_conn.close()
     super().closeEvent(event)
   
-  def parse_args(self):
-    parser = argparse.ArgumentParser(description="Testing Interface for the UTHT Power Distribution System.")
-    parser.add_argument('-c', '--can-port', help='The serial port that the can interface is connected to.', type=str, default=None)
-    parser.add_argument('-a', '--arduino-port', help='The serial port that the arduino due is connected to.', type=str, default=None)
-    parser.add_argument('-b', '--baud-rate', help='The baud rate for the serial connection to the arduino.', type=int, default=9600)
-    args = parser.parse_args()
-    self.can_port: Optional[str] = args.can_port
-    self.arduino_port: Optional[str] = args.arduino_port
-    self.baud_rate: int = args.baud_rate
 
   def init_can(self):
-    if not self.can_port:
+    if not CAN_PORT:
       print("No CAN port specified on command line, not initializing CAN interface.")
       return
 
     try:
-      print(f"Initializing CAN interface on port {self.can_port}")
-      self.bus = can.ThreadSafeBus(interface='slcan', channel=self.can_port, bitrate=1000000)
+      print(f"Initializing CAN interface on port {CAN_PORT}")
+      self.bus = can.ThreadSafeBus(interface='slcan', channel=CAN_PORT, bitrate=1000000)
 
       self.listener = can.BufferedReader()
       self.notifier = can.Notifier(self.bus, listeners=[self.listener], timeout=0.01)
@@ -189,25 +188,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
   def init_timer(self):
+    self.can_thread: QThread = QThread()
+    self.can_worker = CANWorker()
     self.timer = QTimer()
     self.timer.setInterval(self.REFRESH_INTERVAL)
-    self.timer.timeout.connect(self.timer_loop)
-    self.timer.start()
+    self.timer.moveToThread(self.can_thread)
+    self.can_worker.moveToThread(self.can_thread)
+    self.can_worker.data_received.connect(self.update_data)
+    self.can_thread.start()
+
+
+    # self.timer.timeout.connect(self.timer_loop)
+    # self.timer.start()
   
   def get_elapsed_seconds(self, time: float) -> float:
     return time - self.start_time
 
   # Setup a serial connection to the arduino due.
   def init_arduino_serial_conn(self) -> None:
-    if not self.arduino_port:
+    if not ARDUINO_PORT:
       print("No arduino port specified on command line, not initializing arduino serial connection.")
       return
 
     try:
-      print(f"Initializing arduino serial connection on port {self.arduino_port}")
+      print(f"Initializing arduino serial connection on port {ARDUINO_PORT}")
       self.arduino_conn = serial.Serial()
       self.arduino_conn.baudrate = self.baud_rate
-      self.arduino_conn.port = self.arduino_port
+      self.arduino_conn.port = ARDUINO_PORT
       self.arduino_conn.timeout = 1
       
       # Close the port just in case it wasn't closed properly.
@@ -230,7 +237,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
   # Used to turn on/off the software switch and bucks.
   # Do not call this method directly, call the toggle_* methods instead.
   def write_to_arduino(self, data: str) -> None:
-    if not self.arduino_port:
+    if not ARDUINO_PORT:
       print("No arduino port specified on command line, not writing to arduino.")
       return
 
@@ -278,11 +285,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     else: 
       self.write_to_arduino("d")
   
-  def timer_loop(self):
-    if not self.can_port:
-      return
-
-    msg: Optional[can.Message] = self.listener.get_message(0.1)
+  def update_data(self, msg: can.Message) -> None:
     print(f"CAN message received: {msg}")
     if not msg:
       return
@@ -526,6 +529,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 if __name__ == "__main__":
+  parser = argparse.ArgumentParser(description="Testing Interface for the UTHT Power Distribution System.")
+  parser.add_argument('-c', '--can-port', help='The serial port that the can interface is connected to.', type=str, default=None)
+  parser.add_argument('-a', '--arduino-port', help='The serial port that the arduino due is connected to.', type=str, default=None)
+  parser.add_argument('-b', '--baud-rate', help='The baud rate for the serial connection to the arduino.', type=int, default=9600)
+  args = parser.parse_args()
+  CAN_PORT: Optional[str] = args.can_port
+  ARDUINO_PORT: Optional[str] = args.arduino_port
+  BAUD_RATE: int = args.baud_rate
+
+  if not CAN_PORT:
+    print("No CAN port specified on command line, not initializing CAN interface.")
+  else:
+    try:
+      print(f"Initializing CAN interface on port {CAN_PORT}")
+      bus = can.ThreadSafeBus(interface='slcan', channel=CAN_PORT, bitrate=1000000)
+
+      listener = can.BufferedReader()
+      notifier = can.Notifier(bus, listeners=[listener], timeout=0.01)
+      print(f"CAN interface initialized")
+    except Exception as e:
+      print(f"Error initializing CAN interface: {e}")
+
   app = QApplication([])
   window = MainWindow()
   window.show()

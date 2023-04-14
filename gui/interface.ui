@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1104</width>
-    <height>884</height>
+    <width>1440</width>
+    <height>876</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -624,6 +624,12 @@ QSlider::sub-page:vertical {
     </item>
     <item>
      <widget class="QTabWidget" name="tabs">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="font">
        <font>
         <pointsize>12</pointsize>
@@ -642,7 +648,7 @@ QSlider::sub-page:vertical {
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="iconSize">
        <size>
@@ -726,14 +732,14 @@ QSlider::sub-page:vertical {
             </property>
             <property name="minimumSize">
              <size>
-              <width>81</width>
-              <height>81</height>
+              <width>61</width>
+              <height>61</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>81</width>
-              <height>81</height>
+              <width>61</width>
+              <height>61</height>
              </size>
             </property>
             <property name="font">
@@ -792,14 +798,14 @@ Recording</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>81</width>
-              <height>81</height>
+              <width>61</width>
+              <height>61</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>81</width>
-              <height>81</height>
+              <width>61</width>
+              <height>61</height>
              </size>
             </property>
             <property name="font">
@@ -859,19 +865,18 @@ Recording</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>81</width>
-              <height>81</height>
+              <width>61</width>
+              <height>61</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>81</width>
-              <height>81</height>
+              <width>61</width>
+              <height>61</height>
              </size>
             </property>
             <property name="font">
              <font>
-              <family>MS Shell Dlg 2</family>
               <pointsize>8</pointsize>
               <weight>75</weight>
               <bold>true</bold>
