@@ -83,6 +83,8 @@ class VPlot(Plot):
     pass
   
   def within_tolerance(self, expected: float, actual: float) -> bool:
+    if expected == 0:
+      return actual <= VPlot.V_TOLERANCE
     return abs(expected - actual) / expected <= VPlot.V_TOLERANCE
 
 class TPlot(Plot):

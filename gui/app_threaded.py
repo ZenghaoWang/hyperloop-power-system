@@ -213,7 +213,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     try:
       print(f"Initializing arduino serial connection on port {ARDUINO_PORT}")
       self.arduino_conn = serial.Serial()
-      self.arduino_conn.baudrate = self.baud_rate
+      self.arduino_conn.baudrate = BAUD_RATE
       self.arduino_conn.port = ARDUINO_PORT
       self.arduino_conn.timeout = 1
       

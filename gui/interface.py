@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1104, 884)
+        MainWindow.resize(1440, 876)
         MainWindow.setStyleSheet("/*\n"
 "Material Dark Style Sheet for QT Applications\n"
 "Author: Jaime A. Quiroga P.\n"
@@ -523,6 +523,7 @@ class Ui_MainWindow(object):
         self.powerbuttonlayout.addWidget(self.hvsystemtoggleframe)
         self.horizontalLayout.addLayout(self.powerbuttonlayout)
         self.tabs = QtWidgets.QTabWidget(self.centralwidget)
+        self.tabs.setMinimumSize(QtCore.QSize(0, 0))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.tabs.setFont(font)
@@ -656,7 +657,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(2)
+        self.tabs.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
