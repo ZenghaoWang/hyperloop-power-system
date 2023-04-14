@@ -241,13 +241,13 @@ void loop() {
     should_send_data = false;
     
     // Get the battery module data.
-    float battery_module_temp;
+    float battery_module_temp = 0;
     // Note: this function returns the number of bytes returned by the slave, 0 in the event of a timeout.
     uint8_t res = Wire.requestFrom(BATTERY_MODULE_MCU_I2C_ADDR, sizeof(battery_module_temp));
     while (Wire.available()) {
       Wire.readBytes((char *)(&battery_module_temp), sizeof(battery_module_temp));
     }
-    if (SEND_FAKE_DATA || DEMO_MODE) battery_module_temp = 20 + .2 * (float) random(100) / 100.0;
+    if (SEND_FAKE_DATA) battery_module_temp = 20 + .2 * (float) random(100) / 100.0;
     send_data_over_can_bus(&battery_module_temp, sizeof(float), 0x100, 0);
 
     // Get the LV Battery Voltage
