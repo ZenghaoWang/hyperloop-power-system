@@ -17,6 +17,12 @@
 #include <due_can.h>
 #include <Wire.h>
 
+// Sends all spoofed data. Used to test the CANBUS when nothing is connected.
+#define SEND_FAKE_DATA false
+// Puts the MCU into DEMO mode, where only the sensors we are able have live
+// during a demo are sent and the rest are spoofed.
+#define DEMO_MODE false
+
 // The prescalar for the Real Time Timer (RTT). Currently set to run at 64 Hz.
 //      f (Hz) = 0x8000 / RTT_PRESCALER
 #define RTT_PRESCALER (0x8000 >> 6)
@@ -106,16 +112,19 @@ void loop() {
       while (Wire.available()) {
         Wire.readBytes((char *)(&battery_module_temp), sizeof(battery_module_temp));
       }
+      if (SEND_FAKE_DATA || DEMO_MODE) battery_module_temp = 20 + .20 * (float) random(100) / 100.0;
       send_data_over_can_bus(&battery_module_temp, sizeof(float), 0x000 + i, 0);
     }
 
     // Get the HV System Voltage.
     //  Note: the HV voltage sensor produces a 5V output. Same resistor divider as the 5V buck was used.
     float HV_voltage = VOLTAGE_DIV_MULT(20, 10) * convert_sensor_value_to_voltage(analogRead(VOLTAGE_ANALOG_INPUT_PORT));
+    if (SEND_FAKE_DATA || DEMO_MODE) HV_voltage = 288 + 2.88 * (float) random(100) / 100.0;
     send_data_over_can_bus(&HV_voltage, sizeof(float), 0x014, 3);
 
     // Get the HV System Current.
     float HV_current = CURRENT_RES_MULT(91.6) * convert_sensor_value_to_voltage(analogRead(CURRENT_ANALOG_INPUT_PORT));
+    if (SEND_FAKE_DATA || DEMO_MODE) HV_current = 5 + 0.05 * (float) random(100) / 100.0;
     send_data_over_can_bus(&HV_current, sizeof(float), 0x015, 3);
   }
 }
