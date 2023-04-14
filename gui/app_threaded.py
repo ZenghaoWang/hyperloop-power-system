@@ -139,8 +139,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # Setup a serial connection to the arduino due to send signals.
     self.init_arduino_serial_conn()		
-    # Start listening for CAN messages
-    self.init_can()
+
     # Start updating data at regular intervals
     self.init_timer()
     
